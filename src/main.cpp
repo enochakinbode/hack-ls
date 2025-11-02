@@ -11,7 +11,7 @@ using nlohmann::json;
 
 int main() {
 
-  MessageHandler server = MessageHandler();
+  MessageHandler server;
   while (true) {
     map<string, int> headers;
     //  read headers from stdin
