@@ -2,3 +2,6 @@
 [submodule "external/nlohmann_json"]
 	path = external/nlohmann_json
 	url = https://github.com/nlohmann/json.git
+[submodule "external/HackAssembler"]
+	path = external/HackAssembler
+	url = https://github.com/iamenochlee/HackAssembler.git
