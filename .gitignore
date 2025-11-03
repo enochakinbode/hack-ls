@@ -1,6 +1,5 @@
 .cache
 .vscode
 build
-external/
 TODO.txt
 request.txt

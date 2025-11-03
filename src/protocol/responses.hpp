@@ -1,7 +1,6 @@
 #ifndef LSP_RESPONSES_HPP
 #define LSP_RESPONSES_HPP
 
-#include "nlohmann/json_fwd.hpp"
 #include <exception>
 #include <nlohmann/json.hpp>
 #include <optional>

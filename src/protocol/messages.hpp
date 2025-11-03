@@ -35,7 +35,7 @@ inline void from_json(const nlohmann::json &j, RequestMessage &req) {
   }
   j.at("method").get_to(req.method);
   if (j.contains("params")) {
-    j.at("params").get_to(req.params);
+    req.params = j.at("params");
   }
 }
 
@@ -43,7 +43,7 @@ inline void from_json(const nlohmann::json &j, NotificationMessage &req) {
   j.at("jsonrpc").get_to(req.jsonrpc);
   j.at("method").get_to(req.method);
   if (j.contains("params")) {
-    j.at("params").get_to(req.params);
+    req.params = j.at("params");
   }
 }
 

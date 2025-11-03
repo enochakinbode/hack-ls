@@ -3,6 +3,7 @@
 
 #include "protocol/messages.hpp"
 #include "protocol/responses.hpp"
+
 #include <nlohmann/json.hpp>
 
 class MessageHandler {

@@ -8,7 +8,7 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Debug)
 endif()
 
-project(hack-language-server LANGUAGES CXX)
+project(hack-language-server LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -33,6 +33,23 @@ target_include_directories(hack-language-server PRIVATE
     ${CMAKE_SOURCE_DIR}/include
     ${CMAKE_SOURCE_DIR}/src
 )
+
+# HackAssembler (C) frontend as a static library
+set(HACKASM_FRONTEND_DIR ${CMAKE_SOURCE_DIR}/external/HackAssembler/frontend)
+file(GLOB_RECURSE HACKASM_FRONTEND_SOURCES
+    ${HACKASM_FRONTEND_DIR}/core/*.c
+    ${HACKASM_FRONTEND_DIR}/helpers/*.c
+    ${HACKASM_FRONTEND_DIR}/structures/*.c
+    ${HACKASM_FRONTEND_DIR}/utils/*.c
+)
+
+add_library(hackassembler_frontend STATIC ${HACKASM_FRONTEND_SOURCES})
+set_target_properties(hackassembler_frontend PROPERTIES C_STANDARD 11)
+target_include_directories(hackassembler_frontend PUBLIC
+    ${HACKASM_FRONTEND_DIR}/include
+)
+
+target_link_libraries(hack-language-server PRIVATE hackassembler_frontend)
 
 # Link against nlohmann/json
 target_link_libraries(hack-language-server PRIVATE nlohmann_json::nlohmann_json)
