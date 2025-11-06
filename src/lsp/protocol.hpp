@@ -30,9 +30,7 @@ constexpr const char *COMPLETION_TRIGGER_CHARACTERS[] = {"@", "=", ";"};
 inline nlohmann::ordered_json to_json() {
   nlohmann::ordered_json j;
 
-  j = {// Server information (optional in LSP but good practice)
-       // Server capabilities
-       {"capabilities",
+  j = {{"capabilities",
         {{"positionEncoding", POSITION_ENCODING},
 
          {"textDocumentSync",
