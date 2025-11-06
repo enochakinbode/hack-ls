@@ -2,7 +2,7 @@
 #include <string>
 #include <variant>
 
-#include "MessageHandler.hpp"
+#include "MessagesHandler.hpp"
 #include "lsp/params.hpp"
 #include "lsp/protocol.hpp"
 #include "lsp/responses.hpp"
@@ -10,7 +10,7 @@
 
 using namespace std;
 
-int MessageHandler::validateMessage(nlohmann::json &message) {
+int MessagesHandler::validateMessage(nlohmann::json &message) {
   try {
     message.at("jsonrpc");
     message.at("method");
@@ -33,7 +33,7 @@ int MessageHandler::validateMessage(nlohmann::json &message) {
   }
 }
 
-int MessageHandler::process(nlohmann::json &message) {
+int MessagesHandler::process(nlohmann::json &message) {
   if (!validateMessage(message)) {
   }
 
@@ -43,7 +43,7 @@ int MessageHandler::process(nlohmann::json &message) {
     return handleNotification(message);
 }
 
-int MessageHandler::processRequest(nlohmann::json &message) {
+int MessagesHandler::processRequest(nlohmann::json &message) {
   try {
     lsp::RequestMessage req(message);
 
@@ -79,7 +79,7 @@ int MessageHandler::processRequest(nlohmann::json &message) {
   }
 }
 
-int MessageHandler::handleNotification(nlohmann::json &message) {
+int MessagesHandler::handleNotification(nlohmann::json &message) {
   if (!server.isInitailized()) {
     log_error(lsp::ErrorCode::SERVER_NOT_INITIALIZED);
     return 1;
@@ -107,7 +107,7 @@ int MessageHandler::handleNotification(nlohmann::json &message) {
   }
 }
 
-lsp::InitializeResult MessageHandler::initialize(lsp::RequestMessage &req) {
+lsp::InitializeResult MessagesHandler::initialize(lsp::RequestMessage &req) {
 
   auto _params = req.params;
   lsp::InitializeParams params(_params);
@@ -118,18 +118,18 @@ lsp::InitializeResult MessageHandler::initialize(lsp::RequestMessage &req) {
   return result;
 }
 
-int MessageHandler::didOpen(lsp::NotificationMessage &notif) {
+int MessagesHandler::didOpen(lsp::NotificationMessage &notif) {
 
   auto _params = notif.params.value();
   lsp::DidOpenParams didOpenParams(_params);
-  documentHandler.onOpen(didOpenParams);
+  documentsHandler.onOpen(didOpenParams);
   return 0;
 }
 
-int MessageHandler::didChange(lsp::NotificationMessage &notif) {
+int MessagesHandler::didChange(lsp::NotificationMessage &notif) {
 
   auto _params = notif.params.value();
   lsp::DidChangeParams didChangeParams(_params);
-  documentHandler.onChange(didChangeParams);
+  documentsHandler.onChange(didChangeParams);
   return 0;
 }

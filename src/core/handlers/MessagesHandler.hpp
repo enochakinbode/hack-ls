@@ -4,17 +4,17 @@
 #include <variant>
 
 #include "IServerInitState.hpp"
-#include "core/handlers/DocumentHandler.hpp"
+#include "core/handlers/DocumentsHandler.hpp"
 #include "core/transport/MessageIO.hpp"
 #include "lsp/errors.hpp"
 #include "lsp/messages.hpp"
 #include "lsp/responses.hpp"
 #include <nlohmann/json.hpp>
 
-class MessageHandler {
+class MessagesHandler {
 
 public:
-  MessageHandler(IServerIntailizationState &_server, IRespond &_io)
+  MessagesHandler(IServerIntailizationState &_server, IRespond &_io)
       : server(_server), io(_io) {};
 
   int process(nlohmann::json &_message);
@@ -22,7 +22,7 @@ public:
 private:
   IServerIntailizationState &server;
   IRespond &io;
-  DocumentHandler documentHandler;
+  DocumentsHandler documentsHandler;
 
   int validateMessage(nlohmann::json &message);
 

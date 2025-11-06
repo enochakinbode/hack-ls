@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iostream>
 #include <map>
 #include <string>
 #include <vector>
@@ -8,7 +9,7 @@
 #include "lsp/errors.hpp"
 #include "lsp/params.hpp"
 
-class DocumentHandler {
+class DocumentsHandler {
 
 public:
   void onOpen(lsp::DidOpenParams params) {
@@ -32,7 +33,17 @@ public:
     TextDocument &textDocument = it->second;
     textDocument.applyChanges(params.contentChanges);
     textDocument.version = params.textDocument.version;
+
+    std::cout << "UPDATE: " << getText(textDocument.uri) << std::endl;
   };
+
+  const std::string &getText(std::string uri) {
+
+    auto it = documents.find(uri);
+    TextDocument &textDocument = it->second;
+
+    return textDocument.text;
+  }
 
   void onClose() {};
 

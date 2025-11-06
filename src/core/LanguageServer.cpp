@@ -30,6 +30,6 @@ void LanguageServer::start() {
       continue;
     }
 
-    messageHandler.process(message);
+    messagesHandler.process(message);
   }
 };
