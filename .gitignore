@@ -2,6 +2,5 @@
 .vscode
 build
 TODO.txt
-requests
 test.sh
 hack-ls

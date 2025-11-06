@@ -6,20 +6,27 @@ A minimal Language Server (LS) implementation in C++ for the Hack assembly langu
 
 ```
 src/
-├── protocol/           # LS protocol layer
-│   ├── types.hpp      # Position, Range, TextDocument types
-│   ├── messages.hpp   # RequestMessage, NotificationMessage
-│   ├── params.hpp     # Method parameters (Initialize, DidOpen, DidChange)
-│   ├── responses.hpp  # Response structures and ServerCapabilities
-│   └── lsp.hpp        # Main protocol header
-├── core/              # Server Implementation
-│   ├── handlers/      
-│   │   └── MessageHandler  # Routes and processes LS messages
-│   └── structures/    
-│       └── TextDocument    # Document state and incremental updates
-├── common/
-│   └── GlobalState.hpp     # Server state (documents, initialized flag)
-└── main.cpp                # Entry point: LS message loop over stdin/stdout
+├── lsp/                    # LSP protocol layer
+│   ├── types.hpp          # Position, Range, TextDocument types
+│   ├── messages.hpp       # RequestMessage, NotificationMessage
+│   ├── params.hpp         # Method parameters (Initialize, DidOpen, DidChange)
+│   ├── responses.hpp      # Response structures and ServerCapabilities
+│   ├── errors.hpp         # Error codes and Error class
+│   └── protocol.hpp       # Server capabilities and protocol details
+├── core/                   # Server Implementation
+│   ├── handlers/
+│   │   ├── MessageHandler     # Routes and processes LSP messages
+│   │   ├── DocumentHandler    # Handles document lifecycle (open/change)
+│   │   └── IServerInitState   # Server initialization state interface
+│   ├── structures/
+│   │   └── TextDocument       # Document state and incremental updates
+│   ├── transport/
+│   │   └── MessageIO          # I/O layer for LSP protocol (stdin/stdout)
+│   ├── LanguageServer.hpp    # Main server class
+│   └── LanguageServer.cpp
+├── util/
+│   └── logging.hpp            # Logging utilities
+└── main.cpp                   # Entry point: LS message loop over stdin/stdout
 ```
 
 
