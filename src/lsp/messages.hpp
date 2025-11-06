@@ -1,18 +1,16 @@
-#ifndef LSP_MESSAGES_HPP
-#define LSP_MESSAGES_HPP
+#pragma once
 
-#include <nlohmann/json.hpp>
 #include <optional>
 #include <string>
 #include <variant>
+
+#include <nlohmann/json.hpp>
 
 namespace lsp {
 
 struct Message {
   std::string jsonrpc;
 };
-
-enum MessageType { NOTIFICATION, REQUEST };
 
 struct RequestMessage : public Message {
   std::variant<std::string, int> id;
@@ -48,5 +46,3 @@ inline void from_json(const nlohmann::json &j, NotificationMessage &req) {
 }
 
 } // namespace lsp
-
-#endif // LSP_MESSAGES_HPP

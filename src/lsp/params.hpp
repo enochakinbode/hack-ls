@@ -1,5 +1,4 @@
-#ifndef LSP_PARAMS_HPP
-#define LSP_PARAMS_HPP
+#pragma once
 
 #include "types.hpp"
 #include <nlohmann/json.hpp>
@@ -239,5 +238,3 @@ inline void from_json(const nlohmann::json &j,
   }
 }
 } // namespace lsp
-
-#endif // LSP_PARAMS_HPP

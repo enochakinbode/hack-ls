@@ -1,5 +1,4 @@
-#ifndef LSP_TYPES_HPP
-#define LSP_TYPES_HPP
+#pragma once
 
 #include <string>
 #include <variant>
@@ -54,5 +53,3 @@ struct WorkspaceFolder {
 };
 
 } // namespace lsp
-
-#endif // LSP_TYPES_HPP

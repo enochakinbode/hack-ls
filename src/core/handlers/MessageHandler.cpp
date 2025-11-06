@@ -1,20 +1,16 @@
-#include "MessageHandler.hpp"
-
-#include "common/GlobalState.hpp"
-#include "common/logging.hpp"
-#include "core/structures/TextDocument.hpp"
-#include "core/transport/wire.hpp"
-#include "protocol/lsp.hpp"
-#include "protocol/params.hpp"
-#include "protocol/responses.hpp"
-
 #include <optional>
 #include <string>
 #include <variant>
 
+#include "MessageHandler.hpp"
+#include "lsp/params.hpp"
+#include "lsp/protocol.hpp"
+#include "lsp/responses.hpp"
+#include "util/logging.hpp"
+
 using namespace std;
 
-int MessageHandler::validateMessage(nlohmann::json message) {
+int MessageHandler::validateMessage(nlohmann::json &message) {
   try {
     message.at("jsonrpc");
     message.at("method");
@@ -27,79 +23,70 @@ int MessageHandler::validateMessage(nlohmann::json message) {
       auto &_id = message.at("id");
 
       _id.is_string() ? id = _id.get<string>() : id = _id.get<int>();
-      lsp::send_error_response(id, lsp::ErrorCode::PARSE_ERROR, e.what());
+      send_error_response(id, lsp::ErrorCode::PARSE_ERROR, e.what());
 
       return 0;
     }
 
-    lsp::log_error_response(lsp::ErrorCode::INVALID_MESSAGE, e.what());
+    log_error(lsp::ErrorCode::INVALID_MESSAGE, e.what());
     return 0;
   }
 }
 
-int MessageHandler::setMessage(nlohmann::json message) {
-  if (!validateMessage(message))
-    return 0;
+int MessageHandler::process(nlohmann::json &message) {
+  if (!validateMessage(message)) {
+  }
 
-  LSPMessage = message;
-  type = lsp::NOTIFICATION;
-  if (message.contains("id"))
-    type = lsp::REQUEST;
-
-  return 1;
+  if (message.contains("id")) {
+    return processRequest(message);
+  } else
+    return handleNotification(message);
 }
 
-int MessageHandler::run() {
-  if (type == lsp::REQUEST)
-    return processRequest();
-
-  return handleNotification();
-}
-
-int MessageHandler::processRequest() {
+int MessageHandler::processRequest(nlohmann::json &message) {
   try {
-    lsp::RequestMessage req(LSPMessage);
+    lsp::RequestMessage req(message);
 
-    if (!GlobalState::initialized && !(req.method == "initialize")) {
-      lsp::send_error_response(req.id, lsp::ErrorCode::SERVER_NOT_INITIALIZED);
+    if (!server.isInitailized() && !(req.method == "initialize")) {
+      send_error_response(req.id, lsp::ErrorCode::SERVER_NOT_INITIALIZED);
       return 1;
     }
 
     if (req.method == "initialize") {
-      if (GlobalState::initialized) {
-        lsp::send_error_response(req.id, lsp::ErrorCode::REQUEST_CANCELLED,
-                                 "Server is already initialzed");
+      if (server.isInitailized()) {
+        send_error_response(req.id, lsp::ErrorCode::REQUEST_CANCELLED,
+                            "Server is already initialzed");
         return 1;
       }
 
       lsp::InitializeResult result = initialize(req);
-      lsp::send_response(req.id, result);
+      send_response(req.id, result);
 
       return 0;
     }
 
-    lsp::send_error_response(req.id, lsp::ErrorCode::METHOD_NOT_FOUND);
+    send_error_response(req.id, lsp::ErrorCode::METHOD_NOT_FOUND);
     return 1;
 
   } catch (const std::exception &e) {
     variant<string, int> id;
-    auto &_id = LSPMessage.at("id");
+    auto &_id = message.at("id");
 
     _id.is_string() ? id = _id.get<string>() : id = _id.get<int>();
-    lsp::send_error_response(id, lsp::ErrorCode::PARSE_ERROR, e.what());
+    send_error_response(id, lsp::ErrorCode::PARSE_ERROR, e.what());
 
     return 1;
   }
 }
 
-int MessageHandler::handleNotification() {
-  if (!GlobalState::initialized) {
-    lsp::log_error_response(lsp::ErrorCode::SERVER_NOT_INITIALIZED);
+int MessageHandler::handleNotification(nlohmann::json &message) {
+  if (!server.isInitailized()) {
+    log_error(lsp::ErrorCode::SERVER_NOT_INITIALIZED);
     return 1;
   }
 
   try {
-    lsp::NotificationMessage notif(LSPMessage);
+    lsp::NotificationMessage notif(message);
 
     if (notif.method == "textDocument/didOpen")
       return didOpen(notif);
@@ -107,64 +94,42 @@ int MessageHandler::handleNotification() {
     if (notif.method == "textDocument/didChange")
       return didChange(notif);
 
-    lsp::log_error_response(lsp::ErrorCode::METHOD_NOT_FOUND);
+    log_error(lsp::ErrorCode::METHOD_NOT_FOUND);
     return 1;
 
   } catch (const lsp::Error &e) {
-    lsp::log_error_response(e.code, e.data, e.message);
+    log_error(e.code, e.data, e.message);
     return 1;
 
   } catch (const std::exception &e) {
-    lsp::log_error_response(lsp::ErrorCode::INVALID_PARAMS, e.what());
+    log_error(lsp::ErrorCode::INVALID_PARAMS, e.what());
     return 1;
   }
 }
 
-lsp::InitializeResult MessageHandler::initialize(lsp::RequestMessage req) {
+lsp::InitializeResult MessageHandler::initialize(lsp::RequestMessage &req) {
 
   auto _params = req.params;
   lsp::InitializeParams params(_params);
 
-  lsp::ServerInfo serverInfo{protocol::SERVER_NAME, protocol::SERVER_VERSION};
-  lsp::ServerCapabilities caps{protocol::capabilities::POSITION_ENCODING,
-                               protocol::capabilities::SUPPORTS_HOVER,
-                               protocol::capabilities::SUPPORTS_DEFINITION};
+  lsp::InitializeResult result = protocol::serverDetails::to_json();
 
-  lsp::InitializeResult result{serverInfo, caps};
-
-  GlobalState::initialized = true;
+  server.onInitialize();
   return result;
 }
 
-int MessageHandler::didOpen(lsp::NotificationMessage notif) {
+int MessageHandler::didOpen(lsp::NotificationMessage &notif) {
+
   auto _params = notif.params.value();
   lsp::DidOpenParams didOpenParams(_params);
-
-  GlobalState::documents.emplace(
-      didOpenParams.textDocument.uri,
-      TextDocument{didOpenParams.textDocument.uri,
-                   didOpenParams.textDocument.version,
-                   didOpenParams.textDocument.text});
-
+  documentHandler.onOpen(didOpenParams);
   return 0;
 }
 
-int MessageHandler::didChange(lsp::NotificationMessage notif) {
+int MessageHandler::didChange(lsp::NotificationMessage &notif) {
+
   auto _params = notif.params.value();
   lsp::DidChangeParams didChangeParams(_params);
-
-  auto it = GlobalState::documents.find(didChangeParams.textDocument.uri);
-
-  if (it == GlobalState::documents.end()) {
-    lsp::Error error(lsp::ErrorCode::INTERNAL_ERROR, "URI not found", nullopt);
-    throw error;
-  }
-
-  TextDocument &textDocument = it->second;
-  textDocument.applyChanges(didChangeParams.contentChanges);
-
-  textDocument.version = didChangeParams.textDocument.version;
-
-  // cout << "Document changed: " << textDocument.text << endl;
+  documentHandler.onChange(didChangeParams);
   return 0;
 }

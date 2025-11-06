@@ -2,4 +2,6 @@
 .vscode
 build
 TODO.txt
-request.txt
+requests
+test.sh
+hack-ls
