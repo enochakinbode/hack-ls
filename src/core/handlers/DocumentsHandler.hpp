@@ -29,13 +29,15 @@ public:
                        std::nullopt);
       throw error;
     }
-
     TextDocument &textDocument = it->second;
-    textDocument.applyChanges(params.contentChanges);
-    textDocument.version = params.textDocument.version;
 
-    std::cout << "UPDATE: " << getText(textDocument.uri) << std::endl;
+    if (params.textDocument.version > textDocument.version) {
+      textDocument.applyChanges(params.contentChanges);
+      textDocument.version = params.textDocument.version;
+    }
   };
+
+  std::vector<std::string> &getOpenURIs() { return openURIs; };
 
   const std::string &getText(std::string uri) {
 

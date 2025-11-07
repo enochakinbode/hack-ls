@@ -11,11 +11,13 @@
 #include "lsp/responses.hpp"
 #include <nlohmann/json.hpp>
 
+#include "hack/HackManager.hpp"
+
 class MessagesHandler {
 
 public:
   MessagesHandler(IServerIntailizationState &_server, IRespond &_io)
-      : server(_server), io(_io) {};
+      : server(_server), io(_io), hackManager(documentsHandler, _io) {};
 
   int process(nlohmann::json &_message);
 
@@ -23,6 +25,7 @@ private:
   IServerIntailizationState &server;
   IRespond &io;
   DocumentsHandler documentsHandler;
+  HackManager hackManager;
 
   int validateMessage(nlohmann::json &message);
 

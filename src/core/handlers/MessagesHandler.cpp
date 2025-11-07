@@ -123,6 +123,8 @@ int MessagesHandler::didOpen(lsp::NotificationMessage &notif) {
   auto _params = notif.params.value();
   lsp::DidOpenParams didOpenParams(_params);
   documentsHandler.onOpen(didOpenParams);
+
+  hackManager.processDocument(didOpenParams.textDocument.uri);
   return 0;
 }
 
@@ -131,5 +133,7 @@ int MessagesHandler::didChange(lsp::NotificationMessage &notif) {
   auto _params = notif.params.value();
   lsp::DidChangeParams didChangeParams(_params);
   documentsHandler.onChange(didChangeParams);
+
+  hackManager.processDocument(didChangeParams.textDocument.uri);
   return 0;
 }

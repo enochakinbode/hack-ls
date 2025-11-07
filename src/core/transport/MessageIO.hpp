@@ -17,6 +17,9 @@ public:
   respond(const std::variant<std::string, int> &id,
           const std::variant<lsp::Result, lsp::Error> &response) = 0;
 
+  virtual void sendNotification(const std::string &method,
+                                const nlohmann::json &params) = 0;
+
   virtual ~IRespond() = default;
 };
 
@@ -71,6 +74,27 @@ public:
 
     std::cout << "Content-Length: " << res.contentLength << "\r\n\r\n";
     std::cout << res.body << std::endl;
+  }
+
+  void sendNotification(const std::string &method,
+                        const nlohmann::json &params) override {
+
+    nlohmann::ordered_json message;
+    message["jsonrpc"] = "2.0";
+    message["method"] = method;
+
+    if (!params.is_null()) {
+      message["params"] = params;
+    }
+
+    const std::string body = message.dump();
+    const std::string redColor = "\033[31m";
+    const std::string resetColor = "\033[0m";
+
+    std::cout << redColor;
+    std::cout << "Content-Length: " << body.size() << "\r\n\r\n";
+    std::cout << body << std::endl;
+    std::cout << resetColor;
   }
 
 private:
