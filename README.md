@@ -25,9 +25,18 @@ The codebase is organized into three main layers:
 ### Prerequisites
 - C++20 compatible compiler (clang++ or g++)
 - CMake 3.16 or higher
-- HackAssembler frontend (included in `external/HackAssembler/`)
+- Git (for submodules)
+- Dependencies (managed as git submodules):
+  - nlohmann/json (included in `external/nlohmann_json/`)
+  - HackAssembler frontend (included in `external/HackAssembler/`)
 
 ## Build & Run
+
+### Initial Setup
+First, initialize and update the git submodules:
+```bash
+git submodule update --init --recursive
+```
 
 ### Build
 ```bash
