@@ -13,6 +13,15 @@ struct Message {
   std::string jsonrpc;
 };
 
+enum class Severity : int { Error = 1, Warning = 2, Information = 3, Hint = 4 };
+
+struct DiagnosticMessage {
+  int line = 0;
+  int character = 0;
+  std::string message;
+  Severity severity = Severity::Error;
+};
+
 struct RequestMessage : public Message {
   nlohmann::json id;
   std::string method;

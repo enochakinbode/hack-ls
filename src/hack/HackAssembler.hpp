@@ -35,7 +35,7 @@ public:
     }
   };
 
-  std::unordered_map<std::string, Vector *> getDiagnostics() {
+  std::unordered_map<std::string, Vector *> getDiagnostics() const {
     std::unordered_map<std::string, Vector *> diagnostics;
 
     for (const auto &entry : uriToAssembleResult) {
@@ -45,11 +45,13 @@ public:
     return diagnostics;
   };
 
-  Map *getSymbols(std::string uri) { return uriToAssembleResult[uri].symbols; };
+  Map *getSymbols(const std::string &uri) {
+    return uriToAssembleResult[uri].symbols;
+  };
 
-  std::vector<std::string> getDests() { return dests; };
-  std::vector<std::string> getComps() { return comps; };
-  std::vector<std::string> getJumps() { return jumps; };
+  const std::vector<std::string> &getDests() const { return dests; };
+  const std::vector<std::string> &getComps() const { return comps; };
+  const std::vector<std::string> &getJumps() const { return jumps; };
 
   void freeURIResult(const std::string &uri) {
     auto it = uriToAssembleResult.find(uri);
@@ -59,6 +61,13 @@ public:
 
     AssemblerResult__free(&it->second, assemblerConfig);
     uriToAssembleResult.erase(it);
+  }
+
+  void freeAllResults() {
+    for (auto &entry : uriToAssembleResult) {
+      AssemblerResult__free(&entry.second, assemblerConfig);
+    }
+    uriToAssembleResult.clear();
   }
 
 private:

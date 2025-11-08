@@ -1,0 +1,145 @@
+Hack Language Server - Architecture Overview
+=============================================
+
+┌─────────────────────────────────────────────────────────────────┐
+│                         LSP Client                              │
+│                      (Editor/IDE)                               │
+└───────────────────────────┬─────────────────────────────────────┘
+                            │
+                            │ LSP Messages (JSON-RPC)
+                            │
+┌───────────────────────────▼─────────────────────────────────────┐
+│                    Transport Layer                               │
+│  ┌──────────────────────────────────────────────────────────┐  │
+│  │  MessageIO                                                │  │
+│  │  - Read stdin (Content-Length headers)                   │  │
+│  │  - Write stdout (JSON responses)                         │  │
+│  └──────────────────────────────────────────────────────────┘  │
+└───────────────────────────┬─────────────────────────────────────┘
+                            │
+┌───────────────────────────▼─────────────────────────────────────┐
+│                       Core Layer                                 │
+│  ┌──────────────────────────────────────────────────────────┐  │
+│  │  LanguageServer                                           │  │
+│  │  - Main loop                                             │  │
+│  │  - State management (initialized, running, shutdown)     │  │
+│  └──────────────────────────────────────────────────────────┘  │
+│                            │                                     │
+│  ┌─────────────────────────▼───────────────────────────────┐  │
+│  │  MessagesHandler                                          │  │
+│  │  - Route requests/notifications                          │  │
+│  │  - Process: initialize, completion, shutdown            │  │
+│  │  - Handle: didOpen, didChange, didClose                  │  │
+│  │  - Worker thread management                             │  │
+│  └─────────────────────────┬───────────────────────────────┘  │
+│                            │                                     │
+│  ┌─────────────────────────▼───────────────────────────────┐  │
+│  │  DocumentsHandler                                        │  │
+│  │  - Track open documents                                  │  │
+│  │  - Apply incremental changes                             │  │
+│  │  - Version management                                    │  │
+│  └─────────────────────────┬───────────────────────────────┘  │
+│                            │                                     │
+│  ┌─────────────────────────▼───────────────────────────────┐  │
+│  │  TextDocument                                            │  │
+│  │  - Store document text                                  │  │
+│  │  - UTF-16 ↔ UTF-8 conversion                            │  │
+│  │  - Incremental change calculation                       │  │
+│  └──────────────────────────────────────────────────────────┘  │
+│                            │                                     │
+│  ┌─────────────────────────▼───────────────────────────────┐  │
+│  │  Worker Thread (Async)                                  │  │
+│  │  - Process document changes                             │  │
+│  │  - Run HackAssembler                                    │  │
+│  │  - Task queue with mutex/condition variable            │  │
+│  └──────────────────────────────────────────────────────────┘  │
+└───────────────────────────┬─────────────────────────────────────┘
+                            │
+┌───────────────────────────▼─────────────────────────────────────┐
+│                      Hack Layer                                  │
+│  ┌──────────────────────────────────────────────────────────┐  │
+│  │  HackManager                                              │  │
+│  │  - Orchestrates assembler, diagnostics, completion      │  │
+│  └─────────────────────────┬───────────────────────────────┘  │
+│                            │                                     │
+│  ┌─────────────────────────▼───────────────────────────────┐  │
+│  │  HackAssembler                                           │  │
+│  │  - Wraps C assembler library                            │  │
+│  │  - Runs assembly on document text                       │  │
+│  │  - Manages symbols, diagnostics                         │  │
+│  └─────────────────────────┬───────────────────────────────┘  │
+│                            │                                     │
+│  ┌─────────────────────────┼───────────────────────────────┐  │
+│  │                         │                               │  │
+│  │  ┌───────────────────────▼──────────┐                  │  │
+│  │  │  CompletionEngine                 │                  │  │
+│  │  │  - Symbol completion (@)          │                  │  │
+│  │  │  - Comp completion (=)            │                  │  │
+│  │  │  - Jump completion (;)            │                  │  │
+│  │  └───────────────────────────────────┘                  │  │
+│  │                                                          │  │
+│  │  ┌───────────────────────────────────┐                  │  │
+│  │  │  DiagnosticsEngine                │                  │  │
+│  │  │  - Convert assembler errors       │                  │  │
+│  │  │  - Publish LSP diagnostics        │                  │  │
+│  │  └───────────────────────────────────┘                  │  │
+│  └──────────────────────────────────────────────────────────┘  │
+└───────────────────────────┬─────────────────────────────────────┘
+                            │
+┌───────────────────────────▼─────────────────────────────────────┐
+│                    External C Library                            │
+│  ┌──────────────────────────────────────────────────────────┐  │
+│  │  HackAssembler Frontend (C)                              │  │
+│  │  - Parser, analyzer, assembler                           │  │
+│  │  - Symbol tables, diagnostics                           │  │
+│  └──────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────┘
+
+Supporting Layers:
+──────────────────
+
+┌─────────────────────────────────────────────────────────────────┐
+│  LSP Layer                                                      │
+│  - types.hpp: Position, Range, DocumentUri, etc.                │
+│  - messages.hpp: RequestMessage, NotificationMessage            │
+│  - params.hpp: InitializeParams, CompletionParams, etc.        │
+│  - responses.hpp: InitializeResult, CompletionResult            │
+│  - errors.hpp: ErrorCode, Error class                          │
+│  - protocol.hpp: Server capabilities                           │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│  Lib Layer                                                      │
+│  - utf16_to_utf8: Position conversion utilities                │
+│    * UTF-16 code units → UTF-8 byte offsets                    │
+│    * Handles surrogate pairs                                   │
+└─────────────────────────────────────────────────────────────────┘
+
+Message Flow Examples:
+──────────────────────
+
+1. Document Open:
+   Client → didOpen → MessagesHandler → DocumentsHandler → TextDocument
+                                                      ↓
+                                            Worker Thread → HackManager
+                                                      ↓
+                                            HackAssembler → Diagnostics
+                                                      ↓
+                                            Client (diagnostics)
+
+2. Completion:
+   Client → completion → MessagesHandler → HackManager → CompletionEngine
+                                                              ↓
+                                                        HackAssembler
+                                                              ↓
+                                                        Client (items)
+
+3. Document Change:
+   Client → didChange → MessagesHandler → DocumentsHandler → TextDocument
+                                                      ↓
+                                            Worker Thread → HackManager
+                                                      ↓
+                                            HackAssembler → Diagnostics
+                                                      ↓
+                                            Client (updated diagnostics)
+

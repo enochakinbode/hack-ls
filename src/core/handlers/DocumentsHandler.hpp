@@ -16,14 +16,14 @@ public:
     auto textDocument =
         TextDocument{params.textDocument.uri, params.textDocument.version,
                      params.textDocument.text};
-    uriToDococuments.emplace(params.textDocument.uri, textDocument);
+    uriToDocuments.emplace(params.textDocument.uri, textDocument);
   };
 
   void onChange(lsp::DidChangeParams params) {
 
-    auto it = uriToDococuments.find(params.textDocument.uri);
+    auto it = uriToDocuments.find(params.textDocument.uri);
 
-    if (it == uriToDococuments.end()) {
+    if (it == uriToDocuments.end()) {
       lsp::Error error(lsp::ErrorCode::INTERNAL_ERROR, "URI not found",
                        std::nullopt);
       throw error;
@@ -37,21 +37,21 @@ public:
   };
 
   void onClose(lsp::DidCloseParams params) {
-    uriToDococuments.erase(params.textDocument.uri);
+    uriToDocuments.erase(params.textDocument.uri);
   }
 
-  const std::string &getText(std::string uri) {
+  const std::string &getText(const std::string &uri) {
 
-    auto it = uriToDococuments.find(uri);
+    auto it = uriToDocuments.find(uri);
     TextDocument &textDocument = it->second;
 
     return textDocument.text;
   }
 
-  const std::unordered_map<std::string, TextDocument> getDocuments() {
-    return uriToDococuments;
+  const std::unordered_map<std::string, TextDocument> &getDocuments() {
+    return uriToDocuments;
   }
 
 private:
-  std::unordered_map<std::string, TextDocument> uriToDococuments;
+  std::unordered_map<std::string, TextDocument> uriToDocuments;
 };

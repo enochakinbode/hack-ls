@@ -1,7 +1,12 @@
+Match ClientCapablities
+Enforce Hack Language ID
+
+
 ## LSP Features
-- [ ] Implement hover provider (currently disabled in protocol.hpp)
+- [ ] Go to definition
+- [ ] Find references
+- [ ] Code formatting
 - [ ] Add textDocument/save notification support if needed
-- [ ] Consider adding textDocument/formatting if useful for Hack assembly
 
 ## Code Quality & Architecture
 - [ ] Add proper error handling for edge cases (missing files, invalid URIs)

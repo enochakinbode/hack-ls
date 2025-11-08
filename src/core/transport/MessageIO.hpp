@@ -72,13 +72,20 @@ public:
     message["method"] = method;
 
     if (!params.is_null()) {
-      message["params"] = params;
+      // For window/logMessage, ensure type comes before message
+      if (method == "window/logMessage" && params.is_object() &&
+          params.contains("type") && params.contains("message")) {
+        nlohmann::ordered_json orderedParams;
+        orderedParams["type"] = params["type"];
+        orderedParams["message"] = params["message"];
+        message["params"] = orderedParams;
+      } else {
+        // Convert to ordered_json to preserve key order for other notifications
+        message["params"] = nlohmann::ordered_json(params);
+      }
     }
 
     const std::string body = message.dump();
-    const std::string redColor = "\033[31m";
-    const std::string resetColor = "\033[0m";
-
     std::cout << "Content-Length: " << body.size() << "\r\n\r\n";
     std::cout << body << std::endl;
   }

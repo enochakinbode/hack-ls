@@ -1,0 +1,45 @@
+graph LR
+    subgraph Client[" "]
+        LSP[L<br/>S<br/>P<br/><br/>C<br/>l<br/>i<br/>e<br/>n<br/>t]
+    end
+
+    subgraph Transport[" "]
+        IO[MessageIO]
+    end
+
+    subgraph Core[" "]
+        LS[LanguageServer]
+        MH[MessagesHandler]
+        DH[DocumentsHandler]
+        WT[Worker Thread]
+    end
+
+    subgraph Hack[" "]
+        HM[HackManager]
+        HA[HackAssembler<br/>└─ Frontend]
+        CE[CompletionEngine]
+        DE[DiagnosticsEngine]
+    end
+
+    LSP -->|Messages| IO
+    IO --> LS
+    LS --> MH
+    MH --> DH
+    MH -->|Async| WT
+    WT --> HM
+    HM --> HA
+    HM --> CE
+    HM --> DE
+    DE --> IO
+    IO -->|Responses| LSP
+
+    style LS fill:#4A90E2,stroke:#2E5C8A,stroke-width:2px,color:#fff
+    style MH fill:#4A90E2,stroke:#2E5C8A,stroke-width:2px,color:#fff
+    style DH fill:#4A90E2,stroke:#2E5C8A,stroke-width:2px,color:#fff
+    style HM fill:#F5A623,stroke:#D68910,stroke-width:2px,color:#fff
+    style HA fill:#F5A623,stroke:#D68910,stroke-width:2px,color:#fff
+    style CE fill:#F5A623,stroke:#D68910,stroke-width:2px,color:#fff
+    style DE fill:#F5A623,stroke:#D68910,stroke-width:2px,color:#fff
+    style IO fill:#50C878,stroke:#2D8659,stroke-width:2px,color:#fff
+    style LSP fill:#E8E8E8,stroke:#B0B0B0,stroke-width:2px,color:#333
+

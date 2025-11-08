@@ -12,9 +12,9 @@ constexpr const char *SERVER_NAME = "hack-ls";
 constexpr const char *SERVER_VERSION = "0.1.0";
 
 // capabilities
-constexpr const char *POSITION_ENCODING = "utf-8"; // only utf-8 for now
+constexpr const char *POSITION_ENCODING = "utf-16"; // LSP standard uses UTF-16
 constexpr bool TEXT_DOCUMENT_OPEN_CLOSE = true;
-constexpr int TEXT_DOCUMENT_SYNC = 1;
+constexpr int TEXT_DOCUMENT_SYNC = 2;
 constexpr bool WILL_SAVE = false;
 constexpr bool WILL_SAVE_WAIT_UNTIL = false;
 constexpr bool SAVE_INCLUDE_TEXT = false;

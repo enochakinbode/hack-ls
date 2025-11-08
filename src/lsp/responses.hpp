@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <optional>
 #include <string>
 #include <variant>
@@ -35,7 +36,7 @@ struct CompletionList {
 using CompletionResult =
     std::variant<std::nullptr_t, std::vector<CompletionItem>, CompletionList>;
 
-using Result = std::variant<InitializeResult, CompletionResult>;
+using Result = std::variant<std::nullptr_t, InitializeResult, CompletionResult>;
 
 struct Response {
   int contentLength;
@@ -89,9 +90,10 @@ inline void to_json(nlohmann::basic_json<nlohmann::ordered_map> &j,
 inline void to_json(nlohmann::basic_json<nlohmann::ordered_map> &j,
                     const Result &result) {
 
-  if (std::holds_alternative<InitializeResult>(result)) {
+  if (std::holds_alternative<std::nullptr_t>(result)) {
+    j = nullptr;
+  } else if (std::holds_alternative<InitializeResult>(result)) {
     j = std::get<InitializeResult>(result);
-
   } else if (std::holds_alternative<CompletionResult>(result)) {
     to_json(j, std::get<CompletionResult>(result));
   }

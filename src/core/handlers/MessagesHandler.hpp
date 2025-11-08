@@ -8,7 +8,7 @@
 #include <thread>
 
 #include "core/handlers/DocumentsHandler.hpp"
-#include "core/interfaces/IServerInitState.hpp"
+#include "core/interfaces/IServerState.hpp"
 #include "core/transport/MessageIO.hpp"
 #include "hack/HackManager.hpp"
 #include "lsp/errors.hpp"
@@ -19,7 +19,7 @@
 class MessagesHandler {
 
 public:
-  MessagesHandler(IServerIntailizationState &_server, IRespond &_io)
+  MessagesHandler(IServerState &_server, IRespond &_io)
       : server(_server), io(_io), hackManager(documentsHandler, _io),
         workerRunning(true),
         workerThread(&MessagesHandler::workerLoop, this) {};
@@ -33,6 +33,8 @@ public:
     if (workerThread.joinable()) {
       workerThread.join();
     }
+    // Free all assembler results on shutdown to prevent memory leaks
+    hackManager.freeAllResults();
   }
 
   int process(nlohmann::json &_message);
@@ -42,9 +44,12 @@ public:
 
   // Send a logMessage notification through the worker thread
   void logMessage(MessageType type, const std::string &message);
+  // Overload that uses ErrorCode to get the default message
+  void logMessage(MessageType type, lsp::ErrorCode code,
+                  const char *additionalInfo = nullptr);
 
 private:
-  IServerIntailizationState &server;
+  IServerState &server;
   IRespond &io;
   DocumentsHandler documentsHandler;
   HackManager hackManager;
@@ -83,8 +88,7 @@ private:
         return 0;
       }
 
-      logMessage(MessageType::Error,
-                 std::string("Invalid message: ") + e.what());
+      logMessage(MessageType::Error, lsp::ErrorCode::INVALID_MESSAGE, e.what());
       return 0;
     }
   }

@@ -33,6 +33,8 @@ public:
     hackAssembler.freeURIResult(uri);
   }
 
+  void freeAllResults() { hackAssembler.freeAllResults(); }
+
 private:
   HackAssembler hackAssembler;
   DiagnosticsEngine diagnosticsEngine;
