@@ -1,5 +1,5 @@
 #include "./LanguageServer.hpp"
-#include "util/logging.hpp"
+#include "lsp/messages.hpp"
 #include <nlohmann/json.hpp>
 
 using namespace std;
@@ -26,7 +26,8 @@ void LanguageServer::start() {
       message = json::parse(body.value());
 
     } catch (const std::exception &e) {
-      log_error(lsp::ErrorCode::PARSE_ERROR, e.what());
+      messagesHandler.logMessage(MessageType::Error,
+                                 std::string("Parse error: ") + e.what());
       continue;
     }
 

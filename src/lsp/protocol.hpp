@@ -8,7 +8,7 @@ namespace serverDetails {
 
 // Protocol version information
 constexpr const char *LSP_VERSION = "3.17.0";
-constexpr const char *SERVER_NAME = "hack-language-server";
+constexpr const char *SERVER_NAME = "hack-ls";
 constexpr const char *SERVER_VERSION = "0.1.0";
 
 // capabilities
@@ -20,7 +20,7 @@ constexpr bool WILL_SAVE_WAIT_UNTIL = false;
 constexpr bool SAVE_INCLUDE_TEXT = false;
 
 // Features supported
-constexpr bool SUPPORTS_HOVER = true;
+constexpr bool SUPPORTS_HOVER = false;
 constexpr bool SUPPORTS_COMPLETION = true;
 
 // Completion options

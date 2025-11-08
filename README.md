@@ -1,46 +1,95 @@
-# Hack (Nand2Tetris) Language Server Implementation
+# Hack (Nand2Tetris) Language Server
 
-A minimal Language Server (LS) implementation in C++ for the Hack assembly language from the Nand2Tetris course.
+A Language Server Protocol (LSP) implementation in C++ for the Hack assembly language from the Nand2Tetris course.
+
+## Features
+
+### ✅ Implemented
+- **Initialize handshake** - Full LSP initialization with server capabilities
+- **Document synchronization** - Open, change, and close notifications
+- **Incremental text updates** - Efficient document change tracking
+- **Completion provider** - Code completion for Hack assembly instructions
+- **Diagnostics** - Real-time error reporting from the Hack assembler
+- **Logging** - Server-side logging via `window/logMessage` notifications
+- **Worker thread system** - Asynchronous document processing
+- **Error handling** - Comprehensive error responses and logging
+
+
+### ❌ Not Yet Implemented
+- Hover provider
+- Go to definition
+- Find references
+- Code formatting
 
 ## Architecture
 
-```
-src/
-├── lsp/                    # LSP protocol layer
-│   ├── types.hpp          # Position, Range, TextDocument types
-│   ├── messages.hpp       # RequestMessage, NotificationMessage
-│   ├── params.hpp         # Method parameters (Initialize, DidOpen, DidChange)
-│   ├── responses.hpp      # Response structures and ServerCapabilities
-│   ├── errors.hpp         # Error codes and Error class
-│   └── protocol.hpp       # Server capabilities and protocol details
-├── core/                   # Server Implementation
-│   ├── handlers/
-│   │   ├── MessageHandler     # Routes and processes LSP messages
-│   │   ├── DocumentHandler    # Handles document lifecycle (open/change)
-│   │   └── IServerInitState   # Server initialization state interface
-│   ├── structures/
-│   │   └── TextDocument       # Document state and incremental updates
-│   ├── transport/
-│   │   └── MessageIO          # I/O layer for LSP protocol (stdin/stdout)
-│   ├── LanguageServer.hpp    # Main server class
-│   └── LanguageServer.cpp
-├── util/
-│   └── logging.hpp            # Logging utilities
-└── main.cpp                   # Entry point: LS message loop over stdin/stdout
-```
+The codebase is organized into three main layers:
+- **`lsp/`** - LSP protocol layer (types, messages, params, responses, errors)
+- **`core/`** - Server implementation (handlers, document structures, transport I/O)
+- **`hack/`** - Hack-specific functionality (assembler integration, diagnostics, completion)
 
+## Key Components
 
-## Current Capabilities
+### Worker Thread System
+The server uses a dedicated worker thread for asynchronous operations:
+- Document processing (assembling and diagnostics)
+- Notification sending (logMessage, publishDiagnostics)
+- Prevents blocking the main message processing loop
 
-- ✅ Initialize handshake
-- ✅ Document synchronization (open/change)
-- ✅ Incremental text updates
-- 🚧 Definition provider (advertised, not implemented)
-- ❌ Hover, completion, diagnostics (not yet)
+### Completion Engine
+Provides intelligent code completion for:
+- A-instructions (`@symbol`)
+- C-instructions (dest=comp;jump)
+- Symbols and labels
+- Triggered by `@`, `=`, `;` characters
+
+### Diagnostics Engine
+Converts Hack assembler errors into LSP diagnostics:
+- Real-time error reporting
+- Line and character position mapping
+- Error severity classification
 
 ## Build & Run
 
+### Prerequisites
+- C++20 compatible compiler (clang++ or g++)
+- CMake 3.16 or higher
+- HackAssembler frontend (included in `external/HackAssembler/`)
+
+### Build
 ```bash
 cmake -B build && cmake --build build
-./build/bin/hack-language-server
 ```
+
+### Run
+```bash
+./build/bin/hack-ls --stdio
+```
+The server communicates via stdin/stdout using the LSP protocol.
+
+## Testing
+
+The project includes a test script (`test.sh`) that exercises the LSP server with multiple Hack assembly files.
+
+```bash
+./test.sh | ./build/bin/hack-ls
+```
+
+The test script will:
+- Initialize the LSP server
+- Open multiple `.asm` files from `tests/asm/` directory
+- Test incremental document changes (`didChange`)
+- Test completion requests with various trigger characters (`@`, `=`, `;`)
+- Test manual completion triggers
+
+### Test Files
+
+Place your Hack assembly test files in `tests/asm/` directory. The script will automatically process all `.asm` files found there.
+
+## Development
+
+See [TODO.txt](TODO.txt) for current development priorities and known issues.
+
+## License
+
+MIT

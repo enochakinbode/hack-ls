@@ -2,9 +2,10 @@
 
 #include <optional>
 #include <string>
-#include <variant>
 
 #include <nlohmann/json.hpp>
+
+enum class MessageType : int { Error = 1, Warning = 2, Info = 3, Log = 4 };
 
 namespace lsp {
 
@@ -13,7 +14,7 @@ struct Message {
 };
 
 struct RequestMessage : public Message {
-  std::variant<std::string, int> id;
+  nlohmann::json id;
   std::string method;
   nlohmann::json params;
 };
@@ -26,11 +27,7 @@ struct NotificationMessage : public Message {
 // JSON conversion functions
 inline void from_json(const nlohmann::json &j, RequestMessage &req) {
   j.at("jsonrpc").get_to(req.jsonrpc);
-  if (j.at("id").is_string()) {
-    req.id = j.at("id").get<std::string>();
-  } else {
-    req.id = j.at("id").get<int>();
-  }
+  j.at("id").get_to(req.id);
   j.at("method").get_to(req.method);
   if (j.contains("params")) {
     req.params = j.at("params");

@@ -1,0 +1,35 @@
+## LSP Features
+- [ ] Implement hover provider (currently disabled in protocol.hpp)
+- [ ] Add textDocument/save notification support if needed
+- [ ] Consider adding textDocument/formatting if useful for Hack assembly
+
+## Code Quality & Architecture
+- [ ] Add proper error handling for edge cases (missing files, invalid URIs)
+- [ ] Consider adding request cancellation support
+- [ ] Improve thread safety documentation for worker thread system
+- [ ] Add validation for document versions to prevent race conditions
+
+## Testing & Validation
+- [ ] Add unit tests for document lifecycle (open/change/close)
+- [ ] Test completion engine with various Hack assembly patterns
+- [ ] Test diagnostics engine with error cases
+- [ ] Integration tests with actual LSP clients
+- [ ] Test worker thread cleanup on shutdown
+
+## Documentation
+- [ ] Document the worker thread architecture
+- [ ] Add examples of supported LSP methods
+- [ ] Document build requirements and dependencies
+
+## Performance & Optimization
+- [ ] Profile document processing performance
+- [ ] Consider caching assembler results more efficiently
+- [ ] Optimize diagnostics reporting (maybe batch updates)
+- [ ] Review worker thread queue for potential bottlenecks
+
+## Future Enhancements
+- [ ] Add symbol navigation (go to definition, find references)
+- [ ] Add code actions/refactoring support
+- [ ] Consider adding semantic highlighting
+- [ ] Add support for multiple Hack assembly files in workspace
+

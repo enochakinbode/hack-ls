@@ -1,7 +1,7 @@
 #pragma once
 
-#include "core/handlers/IServerInitState.hpp"
 #include "core/handlers/MessagesHandler.hpp"
+#include "core/interfaces/IServerInitState.hpp"
 #include "core/transport/MessageIO.hpp"
 
 class LanguageServer : public IServerIntailizationState {

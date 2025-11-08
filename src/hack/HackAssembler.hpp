@@ -1,7 +1,8 @@
 #pragma once
 
 #include "core/handlers/DocumentsHandler.hpp"
-#include <map>
+#include "structures.h"
+#include <unordered_map>
 #include <vector>
 
 extern "C" {
@@ -27,28 +28,30 @@ public:
       const char *text = documentHandler.getText(uris[i]).c_str();
       char *source = strdup(text);
       AssemblerResult result = assemble(source, assemblerConfig);
+
+      setUpTables(result.dests, result.comps, result.jumps);
       uriToAssembleResult[uris[i]] = result;
       free(source);
     }
   };
 
-  std::map<std::string, Vector *> getDiagnostics() {
-    std::map<std::string, Vector *> diagnostics;
+  std::unordered_map<std::string, Vector *> getDiagnostics() {
+    std::unordered_map<std::string, Vector *> diagnostics;
 
     for (const auto &entry : uriToAssembleResult) {
       diagnostics[entry.first] = entry.second.diagnostics;
     }
 
     return diagnostics;
-  }
+  };
 
-private:
-  AssemblerConfig assemblerConfig = {0, 0};
-  DocumentsHandler &documentHandler;
-  std::map<std::string, AssemblerResult> uriToAssembleResult;
+  Map *getSymbols(std::string uri) { return uriToAssembleResult[uri].symbols; };
+
+  std::vector<std::string> getDests() { return dests; };
+  std::vector<std::string> getComps() { return comps; };
+  std::vector<std::string> getJumps() { return jumps; };
 
   void freeURIResult(const std::string &uri) {
-
     auto it = uriToAssembleResult.find(uri);
     if (it == uriToAssembleResult.end()) {
       return;
@@ -56,5 +59,33 @@ private:
 
     AssemblerResult__free(&it->second, assemblerConfig);
     uriToAssembleResult.erase(it);
+  }
+
+private:
+  AssemblerConfig assemblerConfig = {0, 0};
+  DocumentsHandler &documentHandler;
+  std::unordered_map<std::string, AssemblerResult> uriToAssembleResult;
+  std::vector<std::string> dests, comps, jumps;
+  bool isSetUp = false;
+
+  void setUpTables(Map *_dests, Map *_comps, Map *_jumps) {
+    if (isSetUp)
+      return;
+
+    extractKeys(_dests, dests);
+    extractKeys(_comps, comps);
+    extractKeys(_jumps, jumps);
+
+    isSetUp = true;
+  }
+
+  void extractKeys(Map *map, std::vector<std::string> &output) {
+    if (map == nullptr)
+      return;
+
+    output.reserve(map->size);
+    for (int i = 0; i < map->size; i++) {
+      output.push_back(map->data[i].key);
+    }
   }
 };

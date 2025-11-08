@@ -47,9 +47,4 @@ using LSPAny = int;
 
 enum class TraceValue { Off, Messages, Verbose };
 
-struct WorkspaceFolder {
-  std::string uri;
-  std::string name;
-};
-
 } // namespace lsp

@@ -8,7 +8,7 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Debug)
 endif()
 
-project(hack-language-server LANGUAGES C CXX)
+project(hack-ls LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -26,10 +26,10 @@ file(GLOB_RECURSE SOURCES
     src/*.cpp
 )
 
-add_executable(hack-language-server ${SOURCES})
+add_executable(hack-ls ${SOURCES})
 
 # Add include directories for headers
-target_include_directories(hack-language-server PRIVATE
+target_include_directories(hack-ls PRIVATE
     ${CMAKE_SOURCE_DIR}/include
     ${CMAKE_SOURCE_DIR}/src
 )
@@ -49,18 +49,18 @@ target_include_directories(hackassembler_frontend PUBLIC
     ${HACKASM_FRONTEND_DIR}/include
 )
 
-target_link_libraries(hack-language-server PRIVATE hackassembler_frontend)
+target_link_libraries(hack-ls PRIVATE hackassembler_frontend)
 
 # Link against nlohmann/json
-target_link_libraries(hack-language-server PRIVATE nlohmann_json::nlohmann_json)
+target_link_libraries(hack-ls PRIVATE nlohmann_json::nlohmann_json)
 
 # Common warnings
-target_compile_options(hack-language-server PRIVATE -Wall -Wextra -Wpedantic -Weffc++)
+target_compile_options(hack-ls PRIVATE -Wall -Wextra -Wpedantic -Weffc++)
 
 # Debug vs Release flags
 if(CMAKE_BUILD_TYPE MATCHES Debug)
-  target_compile_options(hack-language-server PRIVATE -g -O0)
+  target_compile_options(hack-ls PRIVATE -g -O0)
   message(STATUS "Building in Debug mode with debug symbols (-g -O0)")
 else()
-  target_compile_options(hack-language-server PRIVATE -O2)
+  target_compile_options(hack-ls PRIVATE -O2)
 endif()

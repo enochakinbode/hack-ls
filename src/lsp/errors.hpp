@@ -28,18 +28,20 @@ class Error : public std::exception {
 
 public:
   ErrorCode code;
-  std::string message;
   std::optional<nlohmann::json> data;
 
   Error(lsp::ErrorCode code, std::string msg,
         std::optional<nlohmann::json> data)
-      : code(code), message(std::move(msg)), data(data) {}
+      : code(code), data(data), message(std::move(msg)) {}
 
   const char *what() const noexcept override { return message.c_str(); }
+
+private:
+  std::string message;
 };
 
 // Returns the default message for a given ErrorCode
-inline std::string getErrorMessage(lsp::ErrorCode code) {
+inline const char *getErrorMessage(lsp::ErrorCode code) {
   switch (code) {
   case lsp::ErrorCode::PARSE_ERROR:
     return "Parse error";

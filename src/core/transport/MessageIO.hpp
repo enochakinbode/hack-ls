@@ -5,23 +5,10 @@
 #include <string>
 #include <variant>
 
+#include "core/interfaces/IRespond.hpp"
 #include "lsp/errors.hpp"
 #include "lsp/responses.hpp"
 #include <nlohmann/json.hpp>
-
-using nlohmann::json;
-
-class IRespond {
-public:
-  virtual void
-  respond(const std::variant<std::string, int> &id,
-          const std::variant<lsp::Result, lsp::Error> &response) = 0;
-
-  virtual void sendNotification(const std::string &method,
-                                const nlohmann::json &params) = 0;
-
-  virtual ~IRespond() = default;
-};
 
 class MessageIO : public IRespond {
 public:
@@ -67,8 +54,9 @@ public:
     return content;
   }
 
-  void respond(const std::variant<std::string, int> &id,
-               const std::variant<lsp::Result, lsp::Error> &response) override {
+  void respond(
+      const nlohmann::json &id,
+      const std::variant<lsp::Result, lsp::Error> &response) noexcept override {
 
     auto res = generate_response(id, response);
 
@@ -91,10 +79,8 @@ public:
     const std::string redColor = "\033[31m";
     const std::string resetColor = "\033[0m";
 
-    std::cout << redColor;
     std::cout << "Content-Length: " << body.size() << "\r\n\r\n";
     std::cout << body << std::endl;
-    std::cout << resetColor;
   }
 
 private:
@@ -133,17 +119,12 @@ private:
   }
 
   lsp::Response
-  generate_response(const std::variant<std::string, int> &id,
+  generate_response(const nlohmann::json &id,
                     const std::variant<lsp::Result, lsp::Error> &result) {
 
     nlohmann::ordered_json msg;
     msg["jsonrpc"] = "2.0";
-
-    if (std::holds_alternative<std::string>(id)) {
-      msg["id"] = std::get<std::string>(id);
-    } else {
-      msg["id"] = std::get<int>(id);
-    }
+    msg["id"] = id;
 
     if (std::holds_alternative<lsp::Result>(result)) {
       nlohmann::ordered_json resultJson;

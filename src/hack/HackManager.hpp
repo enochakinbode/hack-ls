@@ -7,14 +7,16 @@
 #include "HackAssembler.hpp"
 #include "core/handlers/DocumentsHandler.hpp"
 #include "core/transport/MessageIO.hpp"
+#include "hack/CompletionEngine.hpp"
+#include "lsp/responses.hpp"
 
 class HackManager {
 public:
   HackManager(DocumentsHandler &_documentsHandler, IRespond &_io)
-      : hackAssembler(_documentsHandler),
-        diagnosticsEngine(hackAssembler, _io) {}
+      : hackAssembler(_documentsHandler), diagnosticsEngine(hackAssembler, _io),
+        completionEngine(hackAssembler) {}
 
-  void processDocument(const std::string &uri) {
+  void processDocument(const std::string uri) {
     // Step 1: Run assembler
     std::vector<std::string> uris = {uri};
     hackAssembler.run(uris);
@@ -23,11 +25,16 @@ public:
     diagnosticsEngine.report();
   }
 
-  // Future: async versions (to be implemented with threads/queue)
-  // void processDocumentAsync(const std::string &uri);
-  // void processDocumentsAsync(const std::vector<std::string> &uris);
+  lsp::CompletionResult completion(lsp::CompletionParams params) {
+    return completionEngine.completion(params);
+  }
+
+  void freeURIResult(const std::string &uri) {
+    hackAssembler.freeURIResult(uri);
+  }
 
 private:
   HackAssembler hackAssembler;
   DiagnosticsEngine diagnosticsEngine;
+  CompletionEngine completionEngine;
 };
