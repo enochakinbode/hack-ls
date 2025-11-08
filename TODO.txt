@@ -3,6 +3,7 @@ Enforce Hack Language ID
 
 
 ## LSP Features
+- [ ] Hover Provider
 - [ ] Go to definition
 - [ ] Find references
 - [ ] Code formatting
