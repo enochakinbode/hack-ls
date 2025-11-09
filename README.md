@@ -59,7 +59,7 @@ The project includes a test script (`test.sh`) that exercises the LSP server wit
 
 The test script will:
 - Initialize the LSP server
-- Open multiple `.asm` files from `tests/asm/` directory
+- Open multiple `.asm` files from `tests/` directory
 - Test document changes (`didChange`)
 - Test completion requests with various trigger characters (`@`, `=`, `;`)
 - Test manual completion triggers
