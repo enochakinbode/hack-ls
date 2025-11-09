@@ -16,14 +16,9 @@ struct ClientInfo {
   std::optional<std::string> version;
 };
 
-struct GeneralClientCapabilities {
-  std::optional<std::vector<std::string>> positionEncodings;
-};
-
 struct ClientCapabilities {
-  // std::optional<TextDocumentClientCapabilities> textDocument;
-  std::optional<GeneralClientCapabilities> general;
-  // std::optional<LSPAny> experimental;
+  // Empty for now - can be extended if we need client capabilities in the
+  // future
 };
 
 struct InitializeParams {
@@ -31,10 +26,6 @@ struct InitializeParams {
   std::variant<int, std::nullptr_t> processId;
   std::optional<ClientInfo> clientInfo;
   std::optional<std::string> locale;
-
-  // @deprecated in favour of `rootUri`.
-  // optional<string> rootPath;
-
   std::variant<DocumentUri, std::nullptr_t> rootUri;
 
   std::optional<LSPAny> initializationOptions;
@@ -78,22 +69,11 @@ inline void from_json(const nlohmann::json &j, lsp::ClientInfo &ci) {
 }
 
 inline void from_json(const nlohmann::json &j, lsp::ClientCapabilities &c) {
-
-  if (j.contains("general") && j.at("general").is_object()) {
-    const auto &g = j.at("general");
-    if (g.contains("positionEncodings") &&
-        g.at("positionEncodings").is_array()) {
-      std::vector<std::string> encs;
-      for (const auto &e : g.at("positionEncodings")) {
-        if (e.is_string())
-          encs.push_back(e.get<std::string>());
-      }
-      if (!encs.empty()) {
-        c.general.emplace();
-        c.general->positionEncodings = std::move(encs);
-      }
-    }
-  }
+  // We don't currently use any client capabilities
+  // The client may send capabilities, but we ignore them for now
+  // This allows the server to work with any client without errors
+  (void)j; // Suppress unused parameter warning
+  (void)c;
 }
 
 inline void from_json(const nlohmann::json &j, lsp::InitializeParams &p) {

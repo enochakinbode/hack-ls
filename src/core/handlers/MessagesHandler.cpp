@@ -13,18 +13,19 @@ int MessagesHandler::process(nlohmann::json &message) {
 
   if (message.contains("id")) {
     return processRequest(message);
-  } else
-    return handleNotification(message);
+  }
+
+  if (!server.isNotficationnAllowed()) {
+    logMessage(MessageType::Error, lsp::ErrorCode::SERVER_NOT_INITIALIZED);
+    return 1;
+  }
+
+  return handleNotification(message);
 }
 
 int MessagesHandler::processRequest(nlohmann::json &message) {
   try {
     lsp::RequestMessage req(message);
-
-    if (!server.isInitialized() && !(req.method == "initialize")) {
-      send_response(req.id, lsp::ErrorCode::SERVER_NOT_INITIALIZED);
-      return 1;
-    }
 
     // After shutdown, only accept exit notification (handled in
     // handleNotification) Reject all other requests
@@ -38,6 +39,11 @@ int MessagesHandler::processRequest(nlohmann::json &message) {
       lsp::InitializeResult result = initialize(req);
       send_response(req.id, lsp::Result(result));
       return 0;
+    }
+
+    if (!server.isInitialized()) {
+      send_response(req.id, lsp::ErrorCode::SERVER_NOT_INITIALIZED);
+      return 1;
     }
 
     if (req.method == "textDocument/completion") {
@@ -78,13 +84,13 @@ int MessagesHandler::handleNotification(nlohmann::json &message) {
       return 0;
     }
 
+    if (notif.method == "initialized")
+      return initialized();
+
     if (!server.isInitialized()) {
       logMessage(MessageType::Error, lsp::ErrorCode::SERVER_NOT_INITIALIZED);
       return 1;
     }
-
-    if (notif.method == "initialized")
-      return initialized(notif);
 
     if (notif.method == "textDocument/didOpen")
       return didOpen(notif);
@@ -116,7 +122,7 @@ int MessagesHandler::handleNotification(nlohmann::json &message) {
 lsp::InitializeResult MessagesHandler::initialize(lsp::RequestMessage &) {
 
   lsp::InitializeResult result = protocol::serverDetails::to_json();
-  server.onInitialize();
+  server.allowNotifications();
   return result;
 }
 
@@ -136,7 +142,11 @@ lsp::CompletionResult MessagesHandler::completion(lsp::RequestMessage &req) {
   return hackManager.completion(params);
 }
 
-int MessagesHandler::initialized(lsp::NotificationMessage &) { return 0; }
+int MessagesHandler::initialized() {
+
+  server.onInitialize();
+  return 0;
+}
 
 int MessagesHandler::didOpen(lsp::NotificationMessage &notif) {
 

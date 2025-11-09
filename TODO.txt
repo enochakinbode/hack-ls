@@ -1,7 +1,3 @@
-Match ClientCapablities
-Enforce Hack Language ID
-
-
 ## LSP Features
 - [ ] Hover Provider
 - [ ] Go to definition

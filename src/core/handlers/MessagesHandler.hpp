@@ -70,7 +70,7 @@ private:
   lsp::CompletionResult completion(lsp::RequestMessage &req);
 
   // notifications
-  int initialized(lsp::NotificationMessage &notif);
+  int initialized();
   int didOpen(lsp::NotificationMessage &notif);
   int didChange(lsp::NotificationMessage &notif);
   int didClose(lsp::NotificationMessage &notif);

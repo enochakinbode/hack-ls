@@ -17,6 +17,8 @@ public:
   void onExit() override { running = false; }
   bool shouldExit() override { return !running; }
   bool isShutdownRequested() const override { return shutdownRequested; }
+  void allowNotifications() override { notificationAllowed = true; }
+  bool isNotficationnAllowed() const override { return notificationAllowed; }
 
 private:
   MessageIO io;
@@ -24,4 +26,5 @@ private:
   bool running;
   bool initialized = false;
   bool shutdownRequested = false;
+  bool notificationAllowed = false;
 };
