@@ -31,14 +31,8 @@ url_encode() {
         echo -n ""
         return
     fi
-    # For file:// URIs, we mainly need to handle spaces
-    # Use Python if available for proper encoding, otherwise simple replacement
-    if command -v python3 &> /dev/null; then
-        python3 -c "import urllib.parse; print(urllib.parse.quote('$string', safe='/'))"
-    else
-        # Simple fallback: just replace spaces (most common case)
-        echo -n "$string" | sed 's/ /%20/g'
-    fi
+    
+    echo -n "$string" | sed 's/ /%20/g'
 }
 
 # Helper function to escape file content for JSON using jq
