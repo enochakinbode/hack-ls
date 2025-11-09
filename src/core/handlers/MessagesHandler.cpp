@@ -15,7 +15,7 @@ int MessagesHandler::process(nlohmann::json &message) {
     return processRequest(message);
   }
 
-  if (!server.isNotficationnAllowed()) {
+  if (!server.isNotficationsAllowed()) {
     logMessage(MessageType::Error, lsp::ErrorCode::SERVER_NOT_INITIALIZED);
     return 1;
   }

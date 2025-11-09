@@ -18,7 +18,7 @@ public:
   bool shouldExit() override { return !running; }
   bool isShutdownRequested() const override { return shutdownRequested; }
   void allowNotifications() override { notificationAllowed = true; }
-  bool isNotficationnAllowed() const override { return notificationAllowed; }
+  bool isNotficationsAllowed() const override { return notificationAllowed; }
 
 private:
   MessageIO io;
