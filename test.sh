@@ -162,6 +162,32 @@ create_completion() {
     sleep 0.1
 }
 
+# Function to create hover request
+create_hover() {
+    local file_path="$1"
+    local filename=$(basename "$file_path")
+    local line="$2"
+    local character="$3"
+    local request_id="$4"
+    local encoded_path=$(url_encode "$file_path")
+    local uri="file://$encoded_path"
+
+    # Format ID based on REQUEST_ID_TYPE variable
+    local id_value
+    if [ "$REQUEST_ID_TYPE" = "string" ]; then
+        id_value="\"$request_id\""
+    else
+        id_value="$request_id"
+    fi
+
+    local json_body="{\"jsonrpc\":\"2.0\",\"id\":$id_value,\"method\":\"textDocument/hover\",\"params\":{\"textDocument\":{\"uri\":\"$uri\"},\"position\":{\"line\":$line,\"character\":$character}}}"
+
+    send_lsp_message "$json_body"
+    printf "\n" >&2
+    log_status "hover: --> $filename (line:$line, char:$character)"
+    sleep 0.1
+}
+
 # Function to create shutdown request
 create_shutdown() {
     local request_id="${1:-999}"
@@ -295,6 +321,19 @@ generate_test_messages() {
             change_abs_path=$(cd "$(dirname "$change_file")" && pwd)/$(basename "$change_file")
             create_did_change "$change_abs_path" "$abs_path" 2
 
+            # Add hover requests for specific symbols
+            if [ "$filename" = "Add.asm" ]; then
+                # Hover on R5 in Add2.asm (line 8, character 2 - after @R)
+                create_hover "$abs_path" 7 2 $request_id
+                request_id=$((request_id + 1))
+                # Hover on R5 in Add2.asm (line 10, character 0 - @)
+                create_hover "$abs_path" 9 0 $request_id
+                request_id=$((request_id + 1))
+            elif [ "$filename" = "Max.asm" ]; then
+                # Hover on OUTPUT_FIRST in Max2.asm (line 12, character 5 - on OUTPUT_FIRST, after @)
+                create_hover "$abs_path" 11 16 $request_id
+                request_id=$((request_id + 1))
+            fi
         fi
 
         # Send completion requests with different trigger characters

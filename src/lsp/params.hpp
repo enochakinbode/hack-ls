@@ -62,18 +62,21 @@ struct CompletionParams {
   std::optional<CompletionContext> context;
 };
 
+struct HoverParams {
+  TextDocumentIdentifier textDocument;
+  Position position;
+};
+
 inline void from_json(const nlohmann::json &j, lsp::ClientInfo &ci) {
   j.at("name").get_to(ci.name);
   if (j.contains("version"))
     ci.version = j.at("version").get<std::string>();
 }
 
-inline void from_json(const nlohmann::json &j, lsp::ClientCapabilities &c) {
+inline void from_json(const nlohmann::json &, lsp::ClientCapabilities &) {
   // We don't currently use any client capabilities
   // The client may send capabilities, but we ignore them for now
   // This allows the server to work with any client without errors
-  (void)j; // Suppress unused parameter warning
-  (void)c;
 }
 
 inline void from_json(const nlohmann::json &j, lsp::InitializeParams &p) {
@@ -201,5 +204,16 @@ inline void from_json(const nlohmann::json &j, lsp::CompletionParams &params) {
   if (j.contains("context") && j.at("context").is_object()) {
     params.context = j.at("context").get<lsp::CompletionContext>();
   }
+}
+
+inline void from_json(const nlohmann::json &j, lsp::HoverParams &params) {
+  // textDocument
+  j.at("textDocument").at("uri").get_to(params.textDocument.uri);
+
+  // position
+  int line, character;
+  j.at("position").at("line").get_to<int>(line);
+  j.at("position").at("character").get_to<int>(character);
+  params.position = lsp::Position{line, character};
 }
 } // namespace lsp

@@ -46,6 +46,12 @@ int MessagesHandler::processRequest(nlohmann::json &message) {
       return 1;
     }
 
+    if (req.method == "textDocument/hover") {
+      lsp::HoverResult result = hover(req);
+      send_response(req.id, lsp::Result(result));
+      return 0;
+    }
+
     if (req.method == "textDocument/completion") {
       lsp::CompletionResult result = completion(req);
       send_response(req.id, lsp::Result(result));
@@ -140,6 +146,22 @@ lsp::CompletionResult MessagesHandler::completion(lsp::RequestMessage &req) {
   }
 
   return hackManager.completion(params);
+}
+
+lsp::HoverResult MessagesHandler::hover(lsp::RequestMessage &req) {
+
+  lsp::HoverParams params(req.params);
+
+  auto &documents = documentsHandler.getDocuments();
+  auto it = documents.find(params.textDocument.uri);
+
+  if (it == documents.end()) {
+    lsp::Error error(lsp::ErrorCode::INTERNAL_ERROR, "URI not found",
+                     std::nullopt);
+    throw error;
+  }
+
+  return hackManager.hover(params);
 }
 
 int MessagesHandler::initialized() {

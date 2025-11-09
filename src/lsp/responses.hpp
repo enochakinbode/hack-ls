@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "lsp/errors.hpp"
+#include "lsp/types.hpp"
 #include <nlohmann/json.hpp>
 
 namespace lsp {
@@ -36,7 +37,15 @@ struct CompletionList {
 using CompletionResult =
     std::variant<std::nullptr_t, std::vector<CompletionItem>, CompletionList>;
 
-using Result = std::variant<std::nullptr_t, InitializeResult, CompletionResult>;
+struct HoverItem {
+  std::string contents;
+  Range range;
+};
+
+using HoverResult = std::variant<nullptr_t, HoverItem>;
+
+using Result = std::variant<std::nullptr_t, InitializeResult, CompletionResult,
+                            HoverResult>;
 
 struct Response {
   int contentLength;
@@ -88,6 +97,25 @@ inline void to_json(nlohmann::basic_json<nlohmann::ordered_map> &j,
 }
 
 inline void to_json(nlohmann::basic_json<nlohmann::ordered_map> &j,
+                    const HoverResult &result) {
+
+  if (std::holds_alternative<std::nullptr_t>(result)) {
+    j = nullptr;
+  } else {
+    auto res = std::get<HoverItem>(result);
+
+    j = {{"contents", res.contents},
+         {"range",
+          {{"start",
+            {{"line", res.range.start.line},
+             {"character", res.range.start.character}}},
+           {"end",
+            {{"line", res.range.end.line},
+             {"character", res.range.end.character}}}}}};
+  }
+}
+
+inline void to_json(nlohmann::basic_json<nlohmann::ordered_map> &j,
                     const Result &result) {
 
   if (std::holds_alternative<std::nullptr_t>(result)) {
@@ -96,7 +124,8 @@ inline void to_json(nlohmann::basic_json<nlohmann::ordered_map> &j,
     j = std::get<InitializeResult>(result);
   } else if (std::holds_alternative<CompletionResult>(result)) {
     to_json(j, std::get<CompletionResult>(result));
-  }
+  } else
+    to_json(j, std::get<HoverResult>(result));
 }
 
 inline void to_json(nlohmann::basic_json<nlohmann::ordered_map> &j,

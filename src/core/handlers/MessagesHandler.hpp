@@ -68,6 +68,7 @@ private:
   // requests
   lsp::InitializeResult initialize(lsp::RequestMessage &req);
   lsp::CompletionResult completion(lsp::RequestMessage &req);
+  lsp::HoverResult hover(lsp::RequestMessage &req);
 
   // notifications
   int initialized();

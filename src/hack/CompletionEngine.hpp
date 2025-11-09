@@ -13,7 +13,7 @@ public:
   CompletionEngine(HackAssembler &_hackAssembler)
       : hackAssembler(_hackAssembler) {}
 
-  lsp::CompletionResult completion(lsp::CompletionParams params) {
+  lsp::CompletionResult completion(lsp::CompletionParams &params) {
 
     // No context or no trigger character - send all completions
     if (!params.context || !params.context->triggerCharacter) {

@@ -8,13 +8,16 @@
 #include "core/handlers/DocumentsHandler.hpp"
 #include "core/transport/MessageIO.hpp"
 #include "hack/CompletionEngine.hpp"
+#include "hack/HoverEngine.hpp"
+#include "lsp/params.hpp"
 #include "lsp/responses.hpp"
 
 class HackManager {
 public:
   HackManager(DocumentsHandler &_documentsHandler, IRespond &_io)
       : hackAssembler(_documentsHandler), diagnosticsEngine(hackAssembler, _io),
-        completionEngine(hackAssembler) {}
+        completionEngine(hackAssembler),
+        hoverEngine(hackAssembler, _documentsHandler) {}
 
   void processDocument(const std::string uri) {
     // Step 1: Run assembler
@@ -25,8 +28,12 @@ public:
     diagnosticsEngine.report();
   }
 
-  lsp::CompletionResult completion(lsp::CompletionParams params) {
+  lsp::CompletionResult completion(lsp::CompletionParams &params) {
     return completionEngine.completion(params);
+  }
+
+  lsp::HoverResult hover(lsp::HoverParams &params) {
+    return hoverEngine.hover(params);
   }
 
   void freeURIResult(const std::string &uri) {
@@ -39,4 +46,5 @@ private:
   HackAssembler hackAssembler;
   DiagnosticsEngine diagnosticsEngine;
   CompletionEngine completionEngine;
+  HoverEngine hoverEngine;
 };
