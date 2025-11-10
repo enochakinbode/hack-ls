@@ -9,6 +9,7 @@ extern "C" {
 #include "assembler.h"
 #include "structures.h"
 #include "types.h"
+extern int next_variable_address; // Reset this before each assembly
 }
 
 class HackAssembler {
@@ -28,6 +29,12 @@ public:
 
       const char *text = documentHandler.getText(uris[i]).c_str();
       char *source = strdup(text);
+
+      // Reset variable address counter to 16 for each file assembly
+      // (variables should start at address 16, not continue from previous
+      // files)
+      next_variable_address = 16;
+
       AssemblerResult result = assemble(source, assemblerConfig);
 
       setUpTables(result.dests, result.comps, result.jumps);
@@ -47,7 +54,11 @@ public:
   };
 
   Map *getSymbols(const std::string &uri) {
-    return uriToAssembleResult[uri].symbols;
+    auto it = uriToAssembleResult.find(uri);
+    if (it == uriToAssembleResult.end()) {
+      return nullptr;
+    }
+    return it->second.symbols;
   };
 
   const std::vector<std::string> &getDests() const { return dests; };

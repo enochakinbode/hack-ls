@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "core/transport/MessageIO.hpp"
 #include "hack/HackAssembler.hpp"
@@ -33,22 +34,42 @@ public:
 private:
   HackAssembler &hackAssembler;
   IRespond &io;
+  std::vector<std::string> previouslyReportedURIs;
 
   DiagnosticsMessagesMap buildDiagnostics() {
+
     DiagnosticsMessagesMap uriToDiagnosticMessages;
 
-    const std::unordered_map<std::string, Vector *> &diagnosticsMap =
-        hackAssembler.getDiagnostics();
+    const auto &diagnosticsMap = hackAssembler.getDiagnostics();
 
     for (const auto &entry : diagnosticsMap) {
+
       const std::string &uri = entry.first;
       Vector *diagnosticVector = entry.second;
 
-      if (diagnosticVector->size < 1)
+      if (diagnosticVector == nullptr || diagnosticVector->size < 1) {
+
+        auto it = std::find(previouslyReportedURIs.begin(),
+                            previouslyReportedURIs.end(), uri);
+
+        if (it != previouslyReportedURIs.end()) {
+          previouslyReportedURIs.erase(it);
+
+          // Always publish empty diagnostics to clear previous ones
+          uriToDiagnosticMessages[uri] = std::vector<lsp::DiagnosticMessage>();
+        }
+
         continue;
+      }
+
+      // Add to tracking if not already tracked
+      auto it = std::find(previouslyReportedURIs.begin(),
+                          previouslyReportedURIs.end(), uri);
+      if (it == previouslyReportedURIs.end()) {
+        previouslyReportedURIs.push_back(uri);
+      }
 
       std::vector<lsp::DiagnosticMessage> diagnostics;
-
       diagnostics.reserve(diagnosticVector->size);
 
       for (int i = 0; i < diagnosticVector->size; i++) {
@@ -89,14 +110,17 @@ private:
     nlohmann::ordered_json params;
     params["uri"] = uri;
 
-    nlohmann::ordered_json diagnosticsArray = nlohmann::ordered_json::array();
+    auto diagnosticsArray = nlohmann::ordered_json::array();
 
     for (const auto &diagnostic : diagnostics) {
+
       nlohmann::ordered_json diagnosticJson;
-      diagnosticJson["range"]["start"]["line"] = diagnostic.line;
-      diagnosticJson["range"]["start"]["character"] = diagnostic.character;
-      diagnosticJson["range"]["end"]["line"] = diagnostic.line;
-      diagnosticJson["range"]["end"]["character"] = diagnostic.character;
+      diagnosticJson["range"] = {
+          {"start",
+           {{"line", diagnostic.line}, {"character", diagnostic.character}}},
+          {"end",
+           {{"line", diagnostic.line}, {"character", diagnostic.character}}}};
+
       diagnosticJson["severity"] = static_cast<int>(diagnostic.severity);
       diagnosticJson["source"] = "hack-assembler";
       diagnosticJson["message"] = diagnostic.message;

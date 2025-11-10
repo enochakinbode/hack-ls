@@ -8,7 +8,7 @@ public:
           const std::variant<lsp::Result, lsp::Error> &response) noexcept = 0;
 
   virtual void sendNotification(const std::string &method,
-                                const nlohmann::json &params) = 0;
+                                const nlohmann::ordered_json &params) = 0;
 
   virtual ~IRespond() = default;
 };

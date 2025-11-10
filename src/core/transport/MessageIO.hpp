@@ -13,7 +13,7 @@
 
 class MessageIO : public IRespond {
 public:
-  std::optional<std::string> read() noexcept {
+  std::optional<std::string> readMessage() noexcept {
     std::map<std::string, std::string> headers;
     std::string line;
 
@@ -70,24 +70,14 @@ public:
   }
 
   void sendNotification(const std::string &method,
-                        const nlohmann::json &params) override {
+                        const nlohmann::ordered_json &params) override {
 
     nlohmann::ordered_json message;
     message["jsonrpc"] = "2.0";
     message["method"] = method;
 
     if (!params.is_null()) {
-      // For window/logMessage, ensure type comes before message
-      if (method == "window/logMessage" && params.is_object() &&
-          params.contains("type") && params.contains("message")) {
-        nlohmann::ordered_json orderedParams;
-        orderedParams["type"] = params["type"];
-        orderedParams["message"] = params["message"];
-        message["params"] = orderedParams;
-      } else {
-        // Convert to ordered_json to preserve key order for other notifications
-        message["params"] = nlohmann::ordered_json(params);
-      }
+      message["params"] = params;
     }
 
     const std::string body = message.dump();
@@ -100,6 +90,31 @@ public:
   }
 
 private:
+  std::mutex writeMutex;
+
+  lsp::Response
+  generate_response(const nlohmann::json &id,
+                    const std::variant<lsp::Result, lsp::Error> &result) {
+
+    nlohmann::ordered_json msg;
+    msg["jsonrpc"] = "2.0";
+    msg["id"] = id;
+
+    if (std::holds_alternative<lsp::Result>(result)) {
+      nlohmann::ordered_json resultJson;
+      lsp::to_json(resultJson, std::get<lsp::Result>(result));
+      msg["result"] = resultJson;
+    } else {
+      nlohmann::ordered_json errorJson;
+      lsp::to_json(errorJson, std::get<lsp::Error>(result));
+      msg["error"] = errorJson;
+    }
+
+    std::string body = msg.dump();
+    int contentlength = static_cast<int>(body.size());
+    return {contentlength, body};
+  }
+
   bool parse_header(std::map<std::string, std::string> &headers,
                     const std::string &line) {
 
@@ -133,28 +148,4 @@ private:
     headers[key] = value;
     return true;
   }
-
-  lsp::Response
-  generate_response(const nlohmann::json &id,
-                    const std::variant<lsp::Result, lsp::Error> &result) {
-
-    nlohmann::ordered_json msg;
-    msg["jsonrpc"] = "2.0";
-    msg["id"] = id;
-
-    if (std::holds_alternative<lsp::Result>(result)) {
-      nlohmann::ordered_json resultJson;
-      lsp::to_json(resultJson, std::get<lsp::Result>(result));
-      msg["result"] = resultJson;
-    } else {
-      nlohmann::ordered_json errorJson;
-      lsp::to_json(errorJson, std::get<lsp::Error>(result));
-      msg["error"] = errorJson;
-    }
-
-    int contentlength = static_cast<int>(msg.dump().size());
-    return {contentlength, msg};
-  }
-
-  std::mutex writeMutex;
 };

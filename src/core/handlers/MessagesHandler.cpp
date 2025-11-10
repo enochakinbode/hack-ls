@@ -175,7 +175,7 @@ int MessagesHandler::didOpen(lsp::NotificationMessage &notif) {
   documentsHandler.onOpen(didOpenParams);
 
   std::string uri = didOpenParams.textDocument.uri;
-  submitTask([this, uri]() { hackManager.processDocument(uri); });
+  hackManager.processDocument(uri);
   return 0;
 }
 
@@ -186,7 +186,7 @@ int MessagesHandler::didChange(lsp::NotificationMessage &notif) {
   documentsHandler.onChange(didChangeParams);
 
   std::string uri = didChangeParams.textDocument.uri;
-  submitTask([this, uri]() { hackManager.processDocument(uri); });
+  hackManager.processDocument(uri);
   return 0;
 }
 
@@ -209,13 +209,9 @@ void MessagesHandler::submitTask(std::function<void()> task) {
   taskQueueCondition.notify_one();
 }
 
-void MessagesHandler::sendNotificationAsync(const std::string &method,
-                                            const nlohmann::json &params) {
-  // Capture params as ordered_json to preserve key order
-  nlohmann::ordered_json orderedParams = params;
-  submitTask([this, method, orderedParams]() {
-    io.sendNotification(method, orderedParams);
-  });
+void MessagesHandler::sendNotificationAsync(
+    const std::string &method, const nlohmann::ordered_json &params) {
+  submitTask([this, method, params]() { io.sendNotification(method, params); });
 }
 
 void MessagesHandler::logMessage(MessageType type, const std::string &message) {

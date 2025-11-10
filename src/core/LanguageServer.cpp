@@ -9,7 +9,7 @@ using nlohmann::json;
 void LanguageServer::start() {
   while (running) {
 
-    auto body = io.read(); // read one full LSP message
+    auto body = io.readMessage(); // read one full LSP message
 
     if (!body) {
       // This means EOF or invalid message

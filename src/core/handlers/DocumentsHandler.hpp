@@ -36,14 +36,26 @@ public:
   };
 
   void onClose(lsp::DidCloseParams params) {
+
+    auto it = uriToDocuments.find(params.textDocument.uri);
+
+    if (it == uriToDocuments.end()) {
+      lsp::Error error(lsp::ErrorCode::INTERNAL_ERROR, "URI not found");
+      throw error;
+    }
+
     uriToDocuments.erase(params.textDocument.uri);
   }
 
   const std::string &getText(const std::string &uri) {
 
     auto it = uriToDocuments.find(uri);
+    if (it == uriToDocuments.end()) {
+      lsp::Error error(lsp::ErrorCode::INTERNAL_ERROR,
+                       "URI not found in documents");
+      throw error;
+    }
     TextDocument &textDocument = it->second;
-
     return textDocument.text;
   }
 

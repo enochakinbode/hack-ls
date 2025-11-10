@@ -26,14 +26,23 @@ public:
 
     auto symbols = hackAssembler.getSymbols(params.textDocument.uri);
 
+    if (symbols == nullptr) {
+      return lsp::HoverResult(nullptr);
+    }
+
     int val = 0;
+    bool found = false;
 
     for (int i = 0; i < symbols->size; i++) {
       if (res.first.substr(1) == symbols->data[i].key) {
         val = symbols->data[i].value;
+        found = true;
         break;
       }
     }
+
+    if (!found)
+      return lsp::HoverResult(nullptr);
 
     std::string contents = res.first + " = " + std::to_string(val) +
                            "\n\n✨ This symbol sets the A and M registers to " +

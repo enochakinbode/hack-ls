@@ -49,7 +49,7 @@ using Result = std::variant<std::nullptr_t, InitializeResult, CompletionResult,
 
 struct Response {
   int contentLength;
-  nlohmann::ordered_json body;
+  std::string body;
 };
 
 inline void to_json(nlohmann::basic_json<nlohmann::ordered_map> &j,

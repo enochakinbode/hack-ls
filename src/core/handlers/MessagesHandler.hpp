@@ -110,5 +110,5 @@ private:
   }
 
   void sendNotificationAsync(const std::string &method,
-                             const nlohmann::json &params);
+                             const nlohmann::ordered_json &params);
 };
