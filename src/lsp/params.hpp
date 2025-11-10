@@ -1,11 +1,12 @@
 #pragma once
 
-#include "types.hpp"
-#include <nlohmann/json.hpp>
 #include <optional>
 #include <string>
 #include <variant>
 #include <vector>
+
+#include "lsp/types.hpp"
+#include <nlohmann/json.hpp>
 
 namespace lsp {
 

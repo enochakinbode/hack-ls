@@ -1,7 +1,8 @@
-#include "core/LanguageServer.hpp"
-#include "lsp/protocol.hpp"
 #include <cstring>
 #include <iostream>
+
+#include "core/LanguageServer.hpp"
+#include "lsp/protocol.hpp"
 
 struct ParseArgsResult {
   bool stdio;

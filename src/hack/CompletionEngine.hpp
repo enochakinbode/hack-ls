@@ -1,6 +1,6 @@
 #pragma once
 
-#include "HackAssembler.hpp"
+#include "hack/HackAssembler.hpp"
 #include "lsp/params.hpp"
 #include "lsp/protocol.hpp"
 #include "lsp/responses.hpp"

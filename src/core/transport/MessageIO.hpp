@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <map>
+#include <mutex>
 #include <string>
 #include <variant>
 
@@ -60,9 +61,12 @@ public:
 
     auto res = generate_response(id, response);
 
-    std::cout << "Content-Length: " << res.contentLength << "\r\n\r\n";
-    std::cout << res.body;
-    std::cout.flush();
+    {
+      std::lock_guard<std::mutex> lock(writeMutex);
+      std::cout << "Content-Length: " << res.contentLength << "\r\n\r\n";
+      std::cout << res.body;
+      std::cout.flush();
+    }
   }
 
   void sendNotification(const std::string &method,
@@ -87,9 +91,12 @@ public:
     }
 
     const std::string body = message.dump();
-    std::cout << "Content-Length: " << body.size() << "\r\n\r\n";
-    std::cout << body;
-    std::cout.flush();
+    {
+      std::lock_guard<std::mutex> lock(writeMutex);
+      std::cout << "Content-Length: " << body.size() << "\r\n\r\n";
+      std::cout << body;
+      std::cout.flush();
+    }
   }
 
 private:
@@ -148,4 +155,6 @@ private:
     int contentlength = static_cast<int>(msg.dump().size());
     return {contentlength, msg};
   }
+
+  std::mutex writeMutex;
 };

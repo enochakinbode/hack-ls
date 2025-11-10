@@ -4,8 +4,8 @@
 #include <string>
 #include <unordered_map>
 
-#include "HackAssembler.hpp"
 #include "core/transport/MessageIO.hpp"
+#include "hack/HackAssembler.hpp"
 #include "lsp/messages.hpp"
 #include <nlohmann/json.hpp>
 

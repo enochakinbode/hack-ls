@@ -24,8 +24,7 @@ public:
     auto it = uriToDocuments.find(params.textDocument.uri);
 
     if (it == uriToDocuments.end()) {
-      lsp::Error error(lsp::ErrorCode::INTERNAL_ERROR, "URI not found",
-                       std::nullopt);
+      lsp::Error error(lsp::ErrorCode::INTERNAL_ERROR, "URI not found");
       throw error;
     }
 

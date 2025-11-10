@@ -140,8 +140,7 @@ lsp::CompletionResult MessagesHandler::completion(lsp::RequestMessage &req) {
   auto it = documents.find(params.textDocument.uri);
 
   if (it == documents.end()) {
-    lsp::Error error(lsp::ErrorCode::INTERNAL_ERROR, "URI not found",
-                     std::nullopt);
+    lsp::Error error(lsp::ErrorCode::INTERNAL_ERROR, "URI not found");
     throw error;
   }
 
@@ -156,8 +155,7 @@ lsp::HoverResult MessagesHandler::hover(lsp::RequestMessage &req) {
   auto it = documents.find(params.textDocument.uri);
 
   if (it == documents.end()) {
-    lsp::Error error(lsp::ErrorCode::INTERNAL_ERROR, "URI not found",
-                     std::nullopt);
+    lsp::Error error(lsp::ErrorCode::INTERNAL_ERROR, "URI not found");
     throw error;
   }
 

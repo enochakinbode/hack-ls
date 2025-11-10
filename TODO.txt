@@ -1,15 +1,13 @@
 ## LSP Features
-- [ ] Hover Provider
 - [ ] Go to definition
 - [ ] Find references
 - [ ] Code formatting
 - [ ] Add textDocument/save notification support if needed
+- [ ] Implement LSP trace support (initialize param, $/setTrace, $/logTrace)
 
 ## Code Quality & Architecture
-- [ ] Add proper error handling for edge cases (missing files, invalid URIs)
 - [ ] Consider adding request cancellation support
 - [ ] Improve thread safety documentation for worker thread system
-- [ ] Add validation for document versions to prevent race conditions
 
 ## Testing & Validation
 - [ ] Add unit tests for document lifecycle (open/change/close)

@@ -3,11 +3,11 @@
 #include <string>
 #include <vector>
 
-#include "DiagnosticsEngine.hpp"
-#include "HackAssembler.hpp"
 #include "core/handlers/DocumentsHandler.hpp"
 #include "core/transport/MessageIO.hpp"
 #include "hack/CompletionEngine.hpp"
+#include "hack/DiagnosticsEngine.hpp"
+#include "hack/HackAssembler.hpp"
 #include "hack/HoverEngine.hpp"
 #include "lsp/params.hpp"
 #include "lsp/responses.hpp"

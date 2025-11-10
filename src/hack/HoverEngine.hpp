@@ -1,7 +1,7 @@
 #pragma once
 
-#include "HackAssembler.hpp"
 #include "core/handlers/DocumentsHandler.hpp"
+#include "hack/HackAssembler.hpp"
 #include "lib/utf16_to_utf8.hpp"
 #include "lsp/params.hpp"
 #include "lsp/responses.hpp"
@@ -35,10 +35,9 @@ public:
       }
     }
 
-    std::string contents =
-        "pc = " + std::to_string(val) +
-        "\n\n✨ This symbol resolves to program counter value " +
-        std::to_string(val);
+    std::string contents = res.first + " = " + std::to_string(val) +
+                           "\n\n✨ This symbol sets the A and M registers to " +
+                           std::to_string(val);
     return lsp::HoverItem{.contents = contents, .range = res.second};
   };
 

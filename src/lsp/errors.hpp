@@ -1,6 +1,7 @@
 #pragma once
 
 #include <exception>
+#include <optional>
 #include <string>
 
 #include <nlohmann/json.hpp>
@@ -26,7 +27,7 @@ public:
   std::optional<nlohmann::json> data;
 
   Error(lsp::ErrorCode code, std::string msg,
-        std::optional<nlohmann::json> data)
+        std::optional<nlohmann::json> data = std::nullopt)
       : code(code), data(data), message(std::move(msg)) {}
 
   const char *what() const noexcept override { return message.c_str(); }

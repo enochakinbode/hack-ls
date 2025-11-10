@@ -20,7 +20,7 @@ constexpr bool WILL_SAVE_WAIT_UNTIL = false;
 constexpr bool SAVE_INCLUDE_TEXT = false;
 
 // Features supported
-constexpr bool SUPPORTS_HOVER = false;
+constexpr bool SUPPORTS_HOVER = true;
 constexpr bool SUPPORTS_COMPLETION = true;
 
 // Completion options

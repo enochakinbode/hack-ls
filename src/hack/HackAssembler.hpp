@@ -1,12 +1,13 @@
 #pragma once
 
-#include "core/handlers/DocumentsHandler.hpp"
-#include "structures.h"
 #include <unordered_map>
 #include <vector>
 
+#include "core/handlers/DocumentsHandler.hpp"
+
 extern "C" {
 #include "assembler.h"
+#include "structures.h"
 #include "types.h"
 }
 

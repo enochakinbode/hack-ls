@@ -1,6 +1,6 @@
 # Hack (Nand2Tetris) Language Server
 
-A Language Server Protocol (LSP) implementation in C++ for the Hack assembly language from the Nand2Tetris course.
+A Language Server Protocol (LSP) server implementation in C++ for the Hack assembly language from the Nand2Tetris course.
 
 ## Architecture
 
@@ -16,6 +16,7 @@ The codebase is organized into three main layers:
 - [x] Document synchronization (open, change, close)
 - [x] Incremental text updates
 - [x] Code completion (`@`, `=`, `;` triggers)
+- [x] Hover information for symbols
 - [x] Real-time diagnostics
 - [x] Asynchronous processing
 
@@ -67,6 +68,7 @@ The test script will:
 - Open multiple `.asm` files from `tests/` directory
 - Test document changes (`didChange`)
 - Test completion requests with various trigger characters (`@`, `=`, `;`)
+- Test hover requests for symbols
 - Test manual completion triggers
 - Properly shutdown the server (when using `--shutdown` flag)
 
