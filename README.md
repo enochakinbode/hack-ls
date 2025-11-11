@@ -9,7 +9,7 @@ A Language Server Protocol (LSP) server implementation in C++ for the Hack assem
 The codebase is organized into three main layers:
 - **`lsp/`** - LSP protocol layer (types, messages, params, responses, errors)
 - **`core/`** - Server implementation (handlers, document structures, transport I/O)
-- **`hack/`** - Hack-specific functionality (assembler integration, diagnostics, completion)
+- **`hack/`** - Hack-specific functionality (assembler integration, diagnostics, completion, hover)
 
 ## Features
 
