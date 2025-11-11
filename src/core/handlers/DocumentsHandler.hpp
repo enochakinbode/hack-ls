@@ -1,5 +1,6 @@
 #pragma once
 
+#include <mutex>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -16,10 +17,15 @@ public:
     auto textDocument =
         TextDocument{params.textDocument.uri, params.textDocument.version,
                      params.textDocument.text};
-    uriToDocuments.emplace(params.textDocument.uri, textDocument);
+    {
+      std::lock_guard<std::mutex> lock(mutex);
+      uriToDocuments.emplace(params.textDocument.uri, textDocument);
+    }
   };
 
   void onChange(lsp::DidChangeParams params) {
+
+    std::lock_guard<std::mutex> lock(mutex);
 
     auto it = uriToDocuments.find(params.textDocument.uri);
 
@@ -37,6 +43,8 @@ public:
 
   void onClose(lsp::DidCloseParams params) {
 
+    std::lock_guard<std::mutex> lock(mutex);
+
     auto it = uriToDocuments.find(params.textDocument.uri);
 
     if (it == uriToDocuments.end()) {
@@ -48,6 +56,8 @@ public:
   }
 
   const std::string &getText(const std::string &uri) {
+
+    std::lock_guard<std::mutex> lock(mutex);
 
     auto it = uriToDocuments.find(uri);
     if (it == uriToDocuments.end()) {
@@ -65,4 +75,5 @@ public:
 
 private:
   std::unordered_map<std::string, TextDocument> uriToDocuments;
+  std::mutex mutex;
 };

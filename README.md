@@ -18,7 +18,6 @@ The codebase is organized into three main layers:
 - [x] Code completion (`@`, `=`, `;` triggers)
 - [x] Hover information for symbols
 - [x] Real-time diagnostics
-- [x] Asynchronous processing
 
 
 ## Getting Started

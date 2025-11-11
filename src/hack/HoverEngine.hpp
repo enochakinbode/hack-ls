@@ -1,14 +1,15 @@
 #pragma once
 
+#include <cctype>
+#include <string>
+#include <utility>
+
 #include "core/handlers/DocumentsHandler.hpp"
 #include "hack/HackAssembler.hpp"
 #include "lib/utf16_to_utf8.hpp"
 #include "lsp/params.hpp"
 #include "lsp/responses.hpp"
 #include "lsp/types.hpp"
-#include <cctype>
-#include <string>
-#include <utility>
 
 class HoverEngine {
 public:
@@ -25,10 +26,6 @@ public:
       return lsp::HoverResult(nullptr);
 
     auto symbols = hackAssembler.getSymbols(params.textDocument.uri);
-
-    if (symbols == nullptr) {
-      return lsp::HoverResult(nullptr);
-    }
 
     int val = 0;
     bool found = false;
@@ -47,6 +44,7 @@ public:
     std::string contents = res.first + " = " + std::to_string(val) +
                            "\n\n✨ This symbol sets the A and M registers to " +
                            std::to_string(val);
+
     return lsp::HoverItem{.contents = contents, .range = res.second};
   };
 

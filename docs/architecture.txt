@@ -28,9 +28,8 @@ Hack Language Server - Architecture Overview
 │  ┌─────────────────────────▼───────────────────────────────┐  │
 │  │  MessagesHandler                                          │  │
 │  │  - Route requests/notifications                          │  │
-│  │  - Process: initialize, completion, shutdown            │  │
+│  │  - Process: initialize, completion, hover, shutdown      │  │
 │  │  - Handle: didOpen, didChange, didClose                  │  │
-│  │  - Worker thread management                             │  │
 │  └─────────────────────────┬───────────────────────────────┘  │
 │                            │                                     │
 │  ┌─────────────────────────▼───────────────────────────────┐  │
@@ -46,20 +45,13 @@ Hack Language Server - Architecture Overview
 │  │  - UTF-16 ↔ UTF-8 conversion                            │  │
 │  │  - Incremental change calculation                       │  │
 │  └──────────────────────────────────────────────────────────┘  │
-│                            │                                     │
-│  ┌─────────────────────────▼───────────────────────────────┐  │
-│  │  Worker Thread (Async)                                  │  │
-│  │  - Process document changes                             │  │
-│  │  - Run HackAssembler                                    │  │
-│  │  - Task queue with mutex/condition variable            │  │
-│  └──────────────────────────────────────────────────────────┘  │
 └───────────────────────────┬─────────────────────────────────────┘
                             │
 ┌───────────────────────────▼─────────────────────────────────────┐
 │                      Hack Layer                                  │
 │  ┌──────────────────────────────────────────────────────────┐  │
 │  │  HackManager                                              │  │
-│  │  - Orchestrates assembler, diagnostics, completion      │  │
+│  │  - Orchestrates assembler, diagnostics, completion, hover│  │
 │  └─────────────────────────┬───────────────────────────────┘  │
 │                            │                                     │
 │  ┌─────────────────────────▼───────────────────────────────┐  │
@@ -76,6 +68,12 @@ Hack Language Server - Architecture Overview
 │  │  │  - Symbol completion (@)          │                  │  │
 │  │  │  - Comp completion (=)            │                  │  │
 │  │  │  - Jump completion (;)            │                  │  │
+│  │  └───────────────────────────────────┘                  │  │
+│  │                                                          │  │
+│  │  ┌───────────────────────────────────┐                  │  │
+│  │  │  HoverEngine                      │                  │  │
+│  │  │  - Symbol hover information      │                  │  │
+│  │  │  - Instruction details            │                  │  │
 │  │  └───────────────────────────────────┘                  │  │
 │  │                                                          │  │
 │  │  ┌───────────────────────────────────┐                  │  │
@@ -102,8 +100,8 @@ Supporting Layers:
 │  LSP Layer                                                      │
 │  - types.hpp: Position, Range, DocumentUri, etc.                │
 │  - messages.hpp: RequestMessage, NotificationMessage            │
-│  - params.hpp: InitializeParams, CompletionParams, etc.        │
-│  - responses.hpp: InitializeResult, CompletionResult            │
+│  - params.hpp: InitializeParams, CompletionParams, HoverParams, etc.│
+│  - responses.hpp: InitializeResult, CompletionResult, HoverResult │
 │  - errors.hpp: ErrorCode, Error class                          │
 │  - protocol.hpp: Server capabilities                           │
 └─────────────────────────────────────────────────────────────────┘
@@ -121,11 +119,9 @@ Message Flow Examples:
 1. Document Open:
    Client → didOpen → MessagesHandler → DocumentsHandler → TextDocument
                                                       ↓
-                                            Worker Thread → HackManager
+                                            HackManager → HackAssembler
                                                       ↓
-                                            HackAssembler → Diagnostics
-                                                      ↓
-                                            Client (diagnostics)
+                                            Diagnostics → Client
 
 2. Completion:
    Client → completion → MessagesHandler → HackManager → CompletionEngine
@@ -134,12 +130,17 @@ Message Flow Examples:
                                                               ↓
                                                         Client (items)
 
-3. Document Change:
+3. Hover:
+   Client → hover → MessagesHandler → HackManager → HoverEngine
+                                                      ↓
+                                                HackAssembler
+                                                      ↓
+                                                Client (hover info)
+
+4. Document Change:
    Client → didChange → MessagesHandler → DocumentsHandler → TextDocument
                                                       ↓
-                                            Worker Thread → HackManager
+                                            HackManager → HackAssembler
                                                       ↓
-                                            HackAssembler → Diagnostics
-                                                      ↓
-                                            Client (updated diagnostics)
+                                            Diagnostics → Client
 

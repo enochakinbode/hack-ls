@@ -1,10 +1,9 @@
 #pragma once
 
 #include <string>
-#include <vector>
 
 #include "core/handlers/DocumentsHandler.hpp"
-#include "core/transport/MessageIO.hpp"
+#include "core/interfaces/IMessage.hpp"
 #include "hack/CompletionEngine.hpp"
 #include "hack/DiagnosticsEngine.hpp"
 #include "hack/HackAssembler.hpp"
@@ -14,15 +13,14 @@
 
 class HackManager {
 public:
-  HackManager(DocumentsHandler &_documentsHandler, IRespond &_io)
+  HackManager(DocumentsHandler &_documentsHandler, IMessage &_io)
       : hackAssembler(_documentsHandler), diagnosticsEngine(hackAssembler, _io),
         completionEngine(hackAssembler),
         hoverEngine(hackAssembler, _documentsHandler) {}
 
   void processDocument(const std::string uri) {
     // Step 1: Run assembler
-    std::vector<std::string> uris = {uri};
-    hackAssembler.run(uris);
+    hackAssembler.run(uri);
 
     // Step 2: Publish diagnostics
     diagnosticsEngine.report();

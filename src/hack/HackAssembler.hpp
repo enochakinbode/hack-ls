@@ -9,7 +9,6 @@ extern "C" {
 #include "assembler.h"
 #include "structures.h"
 #include "types.h"
-extern int next_variable_address; // Reset this before each assembly
 }
 
 class HackAssembler {
@@ -18,32 +17,22 @@ public:
   HackAssembler(DocumentsHandler &_documentHandler)
       : documentHandler(_documentHandler) {};
 
-  void run(const std::vector<std::string> &uris) {
+  void run(const std::string &uri) {
 
-    for (uint i = 0; i < uris.size(); i++) {
-
-      auto it = uriToAssembleResult.find(uris[i]);
-      if (it != uriToAssembleResult.end()) {
-        freeURIResult(uris[i]);
-      }
-
-      const char *text = documentHandler.getText(uris[i]).c_str();
-      char *source = strdup(text);
-
-      // Reset variable address counter to 16 for each file assembly
-      // (variables should start at address 16, not continue from previous
-      // files)
-      next_variable_address = 16;
-
-      AssemblerResult result = assemble(source, assemblerConfig);
-
-      setUpTables(result.dests, result.comps, result.jumps);
-      uriToAssembleResult[uris[i]] = result;
-      free(source);
+    auto it = uriToAssembleResult.find(uri);
+    if (it != uriToAssembleResult.end()) {
+      freeURIResult(uri);
     }
+
+    auto source = documentHandler.getText(uri);
+
+    AssemblerResult result = assemble(source.data(), assemblerConfig);
+
+    setUpTables(result.dests, result.comps, result.jumps);
+    uriToAssembleResult[uri] = result;
   };
 
-  std::unordered_map<std::string, Vector *> getDiagnostics() const {
+  std::unordered_map<std::string, Vector *> getAllDiagnostics() const {
     std::unordered_map<std::string, Vector *> diagnostics;
 
     for (const auto &entry : uriToAssembleResult) {

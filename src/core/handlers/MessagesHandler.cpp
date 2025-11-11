@@ -16,7 +16,7 @@ int MessagesHandler::process(nlohmann::json &message) {
   }
 
   if (!server.isNotficationsAllowed()) {
-    logMessage(MessageType::Error, lsp::ErrorCode::SERVER_NOT_INITIALIZED);
+    logError(MessageType::Error, lsp::ErrorCode::SERVER_NOT_INITIALIZED);
     return 1;
   }
 
@@ -94,7 +94,7 @@ int MessagesHandler::handleNotification(nlohmann::json &message) {
       return initialized();
 
     if (!server.isInitialized()) {
-      logMessage(MessageType::Error, lsp::ErrorCode::SERVER_NOT_INITIALIZED);
+      logError(MessageType::Error, lsp::ErrorCode::SERVER_NOT_INITIALIZED);
       return 1;
     }
 
@@ -107,8 +107,8 @@ int MessagesHandler::handleNotification(nlohmann::json &message) {
     if (notif.method == "textDocument/didClose")
       return didClose(notif);
 
-    logMessage(MessageType::Error, lsp::ErrorCode::METHOD_NOT_FOUND,
-               notif.method.c_str());
+    logError(MessageType::Error, lsp::ErrorCode::METHOD_NOT_FOUND,
+             notif.method.c_str());
     return 1;
 
   } catch (const lsp::Error &e) {
@@ -120,7 +120,7 @@ int MessagesHandler::handleNotification(nlohmann::json &message) {
     return 1;
 
   } catch (const std::exception &e) {
-    logMessage(MessageType::Error, lsp::ErrorCode::INVALID_PARAMS, e.what());
+    logError(MessageType::Error, lsp::ErrorCode::INVALID_PARAMS, e.what());
     return 1;
   }
 }
@@ -172,10 +172,11 @@ int MessagesHandler::didOpen(lsp::NotificationMessage &notif) {
 
   auto _params = notif.params.value();
   lsp::DidOpenParams didOpenParams(_params);
-  documentsHandler.onOpen(didOpenParams);
-
   std::string uri = didOpenParams.textDocument.uri;
+
+  documentsHandler.onOpen(didOpenParams);
   hackManager.processDocument(uri);
+
   return 0;
 }
 
@@ -183,10 +184,11 @@ int MessagesHandler::didChange(lsp::NotificationMessage &notif) {
 
   auto _params = notif.params.value();
   lsp::DidChangeParams didChangeParams(_params);
-  documentsHandler.onChange(didChangeParams);
-
   std::string uri = didChangeParams.textDocument.uri;
+
+  documentsHandler.onChange(didChangeParams);
   hackManager.processDocument(uri);
+
   return 0;
 }
 
@@ -201,62 +203,20 @@ int MessagesHandler::didClose(lsp::NotificationMessage &notif) {
   return 0;
 }
 
-void MessagesHandler::submitTask(std::function<void()> task) {
-  {
-    std::lock_guard<std::mutex> lock(taskQueueMutex);
-    taskQueue.push(std::move(task));
-  }
-  taskQueueCondition.notify_one();
-}
-
-void MessagesHandler::sendNotificationAsync(
-    const std::string &method, const nlohmann::ordered_json &params) {
-  submitTask([this, method, params]() { io.sendNotification(method, params); });
-}
-
 void MessagesHandler::logMessage(MessageType type, const std::string &message) {
   // Construct params with type first to ensure correct order in JSON output
   nlohmann::ordered_json params = nlohmann::ordered_json::object();
   params["type"] = static_cast<int>(type);
   params["message"] = message;
-  sendNotificationAsync("window/logMessage", params);
+  io.sendNotification("window/logMessage", params);
 }
 
-void MessagesHandler::logMessage(MessageType type, lsp::ErrorCode code,
-                                 const char *additionalInfo) {
+void MessagesHandler::logError(MessageType type, lsp::ErrorCode code,
+                               const char *additionalInfo) {
   std::string message = lsp::getErrorMessage(code);
   if (additionalInfo) {
     message += ": ";
     message += additionalInfo;
   }
   logMessage(type, message);
-}
-
-void MessagesHandler::workerLoop() {
-  while (true) {
-    std::unique_lock<std::mutex> lock(taskQueueMutex);
-    taskQueueCondition.wait(
-        lock, [this] { return !taskQueue.empty() || !workerRunning; });
-
-    if (!workerRunning && taskQueue.empty()) {
-      break;
-    }
-
-    while (!taskQueue.empty()) {
-      auto task = std::move(taskQueue.front());
-      taskQueue.pop();
-      lock.unlock();
-
-      try {
-        task();
-      } catch (const std::exception &e) {
-        // Log error but continue processing
-        // Tasks typically involve HackAssembler operations
-        logMessage(MessageType::Error, lsp::ErrorCode::INTERNAL_ERROR,
-                   (std::string("HackAssembler error: ") + e.what()).c_str());
-      }
-
-      lock.lock();
-    }
-  }
 }

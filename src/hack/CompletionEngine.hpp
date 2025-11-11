@@ -1,11 +1,12 @@
 #pragma once
 
+#include <string>
+#include <vector>
+
 #include "hack/HackAssembler.hpp"
 #include "lsp/params.hpp"
 #include "lsp/protocol.hpp"
 #include "lsp/responses.hpp"
-#include <string>
-#include <vector>
 
 class CompletionEngine {
 

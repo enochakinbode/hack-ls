@@ -7,17 +7,14 @@
 
 ## Code Quality & Architecture
 - [ ] Consider adding request cancellation support
-- [ ] Improve thread safety documentation for worker thread system
 
 ## Testing & Validation
 - [ ] Add unit tests for document lifecycle (open/change/close)
 - [ ] Test completion engine with various Hack assembly patterns
 - [ ] Test diagnostics engine with error cases
 - [ ] Integration tests with actual LSP clients
-- [ ] Test worker thread cleanup on shutdown
 
 ## Documentation
-- [ ] Document the worker thread architecture
 - [ ] Add examples of supported LSP methods
 - [ ] Document build requirements and dependencies
 
@@ -25,7 +22,6 @@
 - [ ] Profile document processing performance
 - [ ] Consider caching assembler results more efficiently
 - [ ] Optimize diagnostics reporting (maybe batch updates)
-- [ ] Review worker thread queue for potential bottlenecks
 
 ## Future Enhancements
 - [ ] Add symbol navigation (go to definition, find references)

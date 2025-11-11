@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "core/transport/MessageIO.hpp"
+#include "core/interfaces/IMessage.hpp"
 #include "hack/HackAssembler.hpp"
 #include "lsp/messages.hpp"
 #include <nlohmann/json.hpp>
@@ -20,54 +20,32 @@ using DiagnosticsMessagesMap =
 
 class DiagnosticsEngine {
 public:
-  DiagnosticsEngine(HackAssembler &_hackAssembler, IRespond &_io)
+  DiagnosticsEngine(HackAssembler &_hackAssembler, IMessage &_io)
       : hackAssembler(_hackAssembler), io(_io) {};
 
   void report() {
-    auto diagnostics = buildDiagnostics();
+    DiagnosticsMessagesMap uriToDiagnosticMessages;
+    buildDiagnostics(uriToDiagnosticMessages);
 
-    for (const auto &entry : diagnostics) {
+    for (const auto &entry : uriToDiagnosticMessages) {
       publishDiagnostics(entry.first, entry.second);
     }
   }
 
 private:
   HackAssembler &hackAssembler;
-  IRespond &io;
-  std::vector<std::string> previouslyReportedURIs;
+  IMessage &io;
+  std::unordered_map<std::string, std::vector<lsp::DiagnosticMessage>>
+      lastPublishedByUri;
 
-  DiagnosticsMessagesMap buildDiagnostics() {
+  void buildDiagnostics(DiagnosticsMessagesMap &uriToDiagnosticMessages) {
 
-    DiagnosticsMessagesMap uriToDiagnosticMessages;
+    const auto &uriToDiagnosticsVector = hackAssembler.getAllDiagnostics();
 
-    const auto &diagnosticsMap = hackAssembler.getDiagnostics();
-
-    for (const auto &entry : diagnosticsMap) {
+    for (const auto &entry : uriToDiagnosticsVector) {
 
       const std::string &uri = entry.first;
       Vector *diagnosticVector = entry.second;
-
-      if (diagnosticVector == nullptr || diagnosticVector->size < 1) {
-
-        auto it = std::find(previouslyReportedURIs.begin(),
-                            previouslyReportedURIs.end(), uri);
-
-        if (it != previouslyReportedURIs.end()) {
-          previouslyReportedURIs.erase(it);
-
-          // Always publish empty diagnostics to clear previous ones
-          uriToDiagnosticMessages[uri] = std::vector<lsp::DiagnosticMessage>();
-        }
-
-        continue;
-      }
-
-      // Add to tracking if not already tracked
-      auto it = std::find(previouslyReportedURIs.begin(),
-                          previouslyReportedURIs.end(), uri);
-      if (it == previouslyReportedURIs.end()) {
-        previouslyReportedURIs.push_back(uri);
-      }
 
       std::vector<lsp::DiagnosticMessage> diagnostics;
       diagnostics.reserve(diagnosticVector->size);
@@ -75,10 +53,6 @@ private:
       for (int i = 0; i < diagnosticVector->size; i++) {
         auto *diagnostic =
             static_cast<Diagnostic *>(diagnosticVector->items[i]);
-
-        if (diagnostic == nullptr || diagnostic->message == nullptr) {
-          continue;
-        }
 
         lsp::DiagnosticMessage message;
         message.line = std::max(diagnostic->line - 1, 0);
@@ -100,13 +74,36 @@ private:
 
       uriToDiagnosticMessages[uri] = std::move(diagnostics);
     }
-
-    return uriToDiagnosticMessages;
   }
 
   void
   publishDiagnostics(const std::string &uri,
                      const std::vector<lsp::DiagnosticMessage> &diagnostics) {
+    // Skip sending if identical to last published for this URI
+    auto sameAsLast = [&]() -> bool {
+      auto it = lastPublishedByUri.find(uri);
+      if (it == lastPublishedByUri.end()) {
+        return false;
+      }
+      const auto &prev = it->second;
+      if (prev.size() != diagnostics.size()) {
+        return false;
+      }
+      for (size_t i = 0; i < diagnostics.size(); ++i) {
+        const auto &a = prev[i];
+        const auto &b = diagnostics[i];
+        if (a.line != b.line || a.character != b.character ||
+            a.message != b.message || a.severity != b.severity) {
+          return false;
+        }
+      }
+      return true;
+    }();
+
+    if (sameAsLast) {
+      return;
+    }
+
     nlohmann::ordered_json params;
     params["uri"] = uri;
 
@@ -131,5 +128,6 @@ private:
     params["diagnostics"] = std::move(diagnosticsArray);
 
     io.sendNotification("textDocument/publishDiagnostics", params);
+    lastPublishedByUri[uri] = diagnostics;
   }
 };

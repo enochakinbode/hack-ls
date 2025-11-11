@@ -6,12 +6,12 @@
 #include <string>
 #include <variant>
 
-#include "core/interfaces/IRespond.hpp"
+#include "core/interfaces/IMessage.hpp"
 #include "lsp/errors.hpp"
 #include "lsp/responses.hpp"
 #include <nlohmann/json.hpp>
 
-class MessageIO : public IRespond {
+class MessageIO : public IMessage {
 public:
   std::optional<std::string> readMessage() noexcept {
     std::map<std::string, std::string> headers;
@@ -55,7 +55,7 @@ public:
     return content;
   }
 
-  void respond(
+  void sendMessage(
       const nlohmann::json &id,
       const std::variant<lsp::Result, lsp::Error> &response) noexcept override {
 

@@ -27,8 +27,8 @@ void LanguageServer::start() {
       message = json::parse(body.value());
 
     } catch (const std::exception &e) {
-      messagesHandler.logMessage(MessageType::Error,
-                                 lsp::ErrorCode::PARSE_ERROR, e.what());
+      messagesHandler.logError(MessageType::Error, lsp::ErrorCode::PARSE_ERROR,
+                               e.what());
       continue;
     }
 
