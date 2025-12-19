@@ -53,11 +53,6 @@ The server communicates via stdin/stdout using the LSP protocol.
 
 The project includes a test script (`test.sh`) that exercises the LSP server with multiple Hack assembly files.
 
-**Prerequisites for testing:**
-- jq (required for running tests)
-  - macOS: `brew install jq`
-  - Linux: `apt-get install jq` or `yum install jq`
-
 ```bash
 ./test.sh --shutdown | ./build/bin/hack-ls --stdio
 ```
