@@ -59,7 +59,7 @@ The project includes a test script (`test.sh`) that exercises the LSP server wit
   - Linux: `apt-get install jq` or `yum install jq`
 
 ```bash
-./test.sh --shutdown | ./build/bin/hack-ls
+./test.sh --shutdown | ./build/bin/hack-ls --stdio
 ```
 
 The test script will:
